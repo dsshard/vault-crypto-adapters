@@ -21,18 +21,7 @@ func PathSign() *framework.Path {
 		},
 		HelpSynopsis:    "Sign a 32‑byte hash with secp256k1 (schnorr)",
 		HelpDescription: "POST name, hash(hex) → signature(hex).",
-		Fields: map[string]*framework.FieldSchema{
-			"name": {Type: framework.TypeString},
-			"hash": {
-				Type:        framework.TypeString,
-				Description: "Hex string of the hash that should be signed.",
-				Default:     "",
-			},
-			"address": {
-				Type:        framework.TypeString,
-				Description: "The address that belongs to a private key in the key-manager.",
-			},
-		},
+		Fields:          backend.DefaultSignOperation,
 	}
 }
 

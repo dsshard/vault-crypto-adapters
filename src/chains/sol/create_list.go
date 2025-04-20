@@ -22,21 +22,13 @@ func PathCreateAndList() *framework.Path {
 		Pattern: config.CreatePathCreateListPattern(config.Chain.SOL),
 		Operations: map[logical.Operation]framework.OperationHandler{
 			logical.UpdateOperation: &framework.PathOperation{Callback: createKeyManager},
-			logical.ListOperation:   &framework.PathOperation{Callback: listKeyManagers},
-		},
-		HelpSynopsis:    "Create/import and list Solana key‑managers",
-		HelpDescription: "POST serviceName + optional privateKey(base58 or hex) → pubkey, LIST → serviceNames",
-		Fields: map[string]*framework.FieldSchema{
-			"serviceName": {
-				Type:        framework.TypeString,
-				Description: "Identifier for this key‑manager",
-			},
-			"privateKey": {
-				Type:        framework.TypeString,
-				Description: "(Optional) base58 or hex‑encoded 64‑byte ed25519 seed. If omitted or invalid, a new keypair is generated.",
-				Default:     "",
+			logical.ListOperation: &framework.PathOperation{
+				Callback: backend.WrapperListKeyManager(config.Chain.SOL),
 			},
 		},
+		HelpSynopsis:    backend.DefaultHelpHelpSynopsisCreateList,
+		HelpDescription: backend.DefaultHelpDescriptionCreateList,
+		Fields:          backend.DefaultCreateListManager,
 	}
 }
 
@@ -46,26 +38,26 @@ func createKeyManager(
 	req *logical.Request,
 	data *framework.FieldData,
 ) (*logical.Response, error) {
-	svc := data.Get("serviceName").(string)
-	if svc == "" {
-		return nil, fmt.Errorf("serviceName is required")
+	serviceName := data.Get("service_name").(string)
+	if serviceName == "" {
+		return nil, fmt.Errorf("service_name is required")
 	}
-	privKeyStr := strings.TrimSpace(data.Get("privateKey").(string))
+	privateKey := strings.TrimSpace(data.Get("private_key").(string))
 
 	// load or init
-	km, err := backend.RetrieveKeyManager(ctx, req, config.Chain.SOL, svc)
+	km, err := backend.RetrieveKeyManager(ctx, req, config.Chain.SOL, serviceName)
 	if err != nil {
 		return nil, err
 	}
 	if km == nil {
-		km = &adaptersTypes.KeyManager{ServiceName: svc}
+		km = &adaptersTypes.KeyManager{ServiceName: serviceName}
 	}
 
 	// decode or generate
 	var acct types.Account
-	if privKeyStr != "" {
+	if privateKey != "" {
 		// 1) Try hex‐encoded 32‐byte seed
-		hexSeed := strings.TrimPrefix(privKeyStr, "0x")
+		hexSeed := strings.TrimPrefix(privateKey, "0x")
 		bs, errHex := hex.DecodeString(hexSeed)
 		if errHex == nil && len(bs) == ed25519.SeedSize {
 			// valid 32‐byte seed
@@ -75,11 +67,11 @@ func createKeyManager(
 			}
 		} else {
 			// 2) Fallback: try Base58 secret key (64 bytes)
-			decoded, errB58 := base58.Decode(privKeyStr)
+			decoded, errB58 := base58.Decode(privateKey)
 			if errB58 != nil || len(decoded) != ed25519.PrivateKeySize {
 				return nil, fmt.Errorf("invalid private key: neither valid 32‑byte hex seed nor 64‑byte base58 secret")
 			}
-			acct, err = types.AccountFromBase58(privKeyStr)
+			acct, err = types.AccountFromBase58(privateKey)
 			if err != nil {
 				return nil, fmt.Errorf("invalid private key (base58): %w", err)
 			}
@@ -98,7 +90,7 @@ func createKeyManager(
 	}
 	km.KeyPairs = append(km.KeyPairs, kp)
 
-	storageKey := fmt.Sprintf("key-managers/%s/%s", config.Chain.SOL, svc)
+	storageKey := fmt.Sprintf("key-managers/%s/%s", config.Chain.SOL, serviceName)
 	entry, _ := logical.StorageEntryJSON(storageKey, km)
 	if err := req.Storage.Put(ctx, entry); err != nil {
 		return nil, err
@@ -106,17 +98,9 @@ func createKeyManager(
 
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"service_name": svc,
+			"service_name": serviceName,
 			"address":      kp.Address,
 			"public_key":   kp.PublicKey,
 		},
 	}, nil
-}
-
-func listKeyManagers(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	keys, err := req.Storage.List(ctx, fmt.Sprintf("key-managers/%s/", config.Chain.SOL))
-	if err != nil {
-		return nil, err
-	}
-	return logical.ListResponse(keys), nil
 }

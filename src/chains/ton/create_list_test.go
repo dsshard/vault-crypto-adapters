@@ -19,9 +19,9 @@ func TestTonCreateAndListKeyManagers(t *testing.T) {
 	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/ton")
 	req.Storage = storage
 	req.Data = map[string]interface{}{
-		"serviceName": "svc",
+		"service_name": "svc",
 		// this should be a 64‑hex‑char (32‑byte) seed
-		"privateKey": "4c0883a69102937a9280f1222f7c9b6645e1a3c7bf2e5b4cd0bd58d7f9f5d9b1",
+		"private_key": "4c0883a69102937a9280f1222f7c9b6645e1a3c7bf2e5b4cd0bd58d7f9f5d9b1",
 	}
 	resp, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
@@ -34,8 +34,8 @@ func TestTonCreateAndListKeyManagers(t *testing.T) {
 	req = logical.TestRequest(t, logical.UpdateOperation, "key-managers/ton")
 	req.Storage = storage
 	req.Data = map[string]interface{}{
-		"serviceName": "svc",
-		"privateKey":  "",
+		"service_name": "svc",
+		"private_key":  "",
 	}
 	_, err = b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
@@ -67,8 +67,8 @@ func TestTonCreateAndListKeyManagers_EmptyPrivKey(t *testing.T) {
 	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/ton")
 	req.Storage = storage
 	req.Data = map[string]interface{}{
-		"serviceName": "svc",
-		"privateKey":  "",
+		"service_name": "svc",
+		"private_key":  "",
 	}
 	resp, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
@@ -84,8 +84,8 @@ func TestTonCreateAndListKeyManagers_InvalidPrivKey(t *testing.T) {
 	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/ton")
 	req.Storage = storage
 	req.Data = map[string]interface{}{
-		"serviceName": "svc",
-		"privateKey":  "1234dead",
+		"service_name": "svc",
+		"private_key":  "1234dead",
 	}
 	_, err := b.HandleRequest(context.Background(), req)
 	require.Error(t, err)

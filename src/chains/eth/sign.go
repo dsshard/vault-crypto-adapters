@@ -21,24 +21,9 @@ func PathSign() *framework.Path {
 				Callback: sign,
 			},
 		},
-		HelpSynopsis: "Sign a provided transaction object.",
-		HelpDescription: `
-
-    Sign a transaction object with properties conforming to the Ethereum JSON-RPC documentation.
-
-    `,
-		Fields: map[string]*framework.FieldSchema{
-			"name": {Type: framework.TypeString},
-			"hash": {
-				Type:        framework.TypeString,
-				Description: "Hex string of the hash that should be signed.",
-				Default:     "",
-			},
-			"address": {
-				Type:        framework.TypeString,
-				Description: "The address that belongs to a private key in the key-manager.",
-			},
-		},
+		HelpSynopsis:    "Sign a provided transaction object.",
+		HelpDescription: `Sign a transaction`,
+		Fields:          backend.DefaultSignOperation,
 	}
 }
 

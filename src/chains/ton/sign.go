@@ -22,18 +22,7 @@ func PathSign() *framework.Path {
 		},
 		HelpSynopsis:    "Sign a 32‑byte SHA256 hash with a TON Ed25519 key.",
 		HelpDescription: "POST name, hash(hex‑encoded SHA256) → signature(hex‑encoded Ed25519).",
-		Fields: map[string]*framework.FieldSchema{
-			"name": {Type: framework.TypeString},
-			"hash": {
-				Type:        framework.TypeString,
-				Description: "Hex string of the hash that should be signed.",
-				Default:     "",
-			},
-			"address": {
-				Type:        framework.TypeString,
-				Description: "The address that belongs to a private key in the key-manager.",
-			},
-		},
+		Fields:          backend.DefaultSignOperation,
 	}
 }
 

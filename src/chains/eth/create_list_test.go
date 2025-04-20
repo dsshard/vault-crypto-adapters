@@ -18,8 +18,8 @@ func TestEthCreateAndListKeyManagers(t *testing.T) {
 	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/eth")
 	req.Storage = storage
 	req.Data = map[string]interface{}{
-		"serviceName": "svc",
-		"privateKey":  "4c0883a69102937a9280f1222f7c9b6645e1a3c7bf2e5b4cd0bd58d7f9f5d9b7",
+		"service_name": "svc",
+		"private_key":  "4c0883a69102937a9280f1222f7c9b6645e1a3c7bf2e5b4cd0bd58d7f9f5d9b7",
 	}
 	resp, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
@@ -31,7 +31,7 @@ func TestEthCreateAndListKeyManagers(t *testing.T) {
 	// 2) Generate another key (no privateKey → new random)
 	req = logical.TestRequest(t, logical.UpdateOperation, "key-managers/eth")
 	req.Storage = storage
-	req.Data = map[string]interface{}{"serviceName": "svc"}
+	req.Data = map[string]interface{}{"service_name": "svc"}
 	_, err = b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
 
@@ -63,8 +63,8 @@ func TestEthCreateAndListKeyManagers_EmptyPrivKey(t *testing.T) {
 	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/eth")
 	req.Storage = storage
 	req.Data = map[string]interface{}{
-		"serviceName": "svc",
-		"privateKey":  "",
+		"service_name": "svc",
+		"private_key":  "",
 	}
 	resp, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
@@ -80,8 +80,8 @@ func TestEthCreateAndListKeyManagers_InvalidPrivKey(t *testing.T) {
 	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/eth")
 	req.Storage = storage
 	req.Data = map[string]interface{}{
-		"serviceName": "svc",
-		"privateKey":  "1234deadbeef",
+		"service_name": "svc",
+		"private_key":  "1234deadbeef",
 	}
 	_, err := b.HandleRequest(context.Background(), req)
 	require.Error(t, err)

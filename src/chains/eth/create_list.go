@@ -25,37 +25,13 @@ func PathCreateAndList() *framework.Path {
 				Callback: createKeyManager,
 			},
 			logical.ListOperation: &framework.PathOperation{
-				Callback: listKeyManagers,
+				Callback: backend.WrapperListKeyManager(config.Chain.ETH),
 			},
 		},
-		HelpSynopsis: "Create new key-manager with input private-key or random private-key & list all the key-managers maintained by the plugin backend.",
-		HelpDescription: `
-
-    POST - create a new keyManager
-    LIST - list all keyManagers
-
-    `,
-		Fields: map[string]*framework.FieldSchema{
-			"serviceName": {
-				Type:        framework.TypeString,
-				Description: "The service that is the owner of the private-key",
-				Default:     "",
-			},
-			"privateKey": {
-				Type:        framework.TypeString,
-				Description: "(Optional, default random key) Hex string for the private key (32-byte or 64-char long). If present, the request will import the given key instead of generating a new key.",
-				Default:     "",
-			},
-		},
+		HelpSynopsis:    backend.DefaultHelpHelpSynopsisCreateList,
+		HelpDescription: backend.DefaultHelpDescriptionCreateList,
+		Fields:          backend.DefaultCreateListManager,
 	}
-}
-
-func listKeyManagers(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	keys, err := req.Storage.List(ctx, fmt.Sprintf("key-managers/%s/", config.Chain.ETH))
-	if err != nil {
-		return nil, err
-	}
-	return logical.ListResponse(keys), nil
 }
 
 func createKeyManager(
@@ -63,12 +39,12 @@ func createKeyManager(
 	req *logical.Request,
 	data *framework.FieldData,
 ) (*logical.Response, error) {
-	serviceInput, ok := data.Get("serviceName").(string)
+	serviceInput, ok := data.Get("service_name").(string)
 	if !ok {
 		return nil, types.ErrInvalidType
 	}
 
-	keyInput, ok := data.Get("privateKey").(string)
+	privateKey, ok := data.Get("private_key").(string)
 	if !ok {
 		return nil, types.ErrInvalidType
 	}
@@ -84,36 +60,35 @@ func createKeyManager(
 		}
 	}
 
-	var privateKey *ecdsa.PrivateKey
+	var privateKeyExport *ecdsa.PrivateKey
 	var privateKeyBytes []byte
 
-	if keyInput != "" {
+	if privateKey != "" {
 		re := regexp.MustCompile("[0-9a-fA-F]{64}$")
 
-		key := re.FindString(keyInput)
+		key := re.FindString(privateKey)
 		if key == "" {
-			log.Error("Input private key did not parse successfully", "privateKey", keyInput)
 			return nil, fmt.Errorf("invalid private key")
 		}
 
-		privateKey, err = crypto.HexToECDSA(key)
+		privateKeyExport, err = crypto.HexToECDSA(key)
 		if err != nil {
-			log.Error("Error reconstructing private key from input hex", "error", err)
 			return nil, fmt.Errorf("error reconstructing private key from input hex, %w", err)
 		}
-		if privateKey == nil {
+		if privateKeyExport == nil {
 			return nil, fmt.Errorf("invalid private key")
 		}
 	} else {
-		privateKey, _ = crypto.GenerateKey()
+		privateKeyExport, _ = crypto.GenerateKey()
 	}
 
-	privateKeyBytes = crypto.FromECDSA(privateKey)
-	defer ZeroKey(privateKey)
+	privateKeyBytes = crypto.FromECDSA(privateKeyExport)
+	defer ZeroKey(privateKeyExport)
 
-	publicKey := privateKey.Public()
+	publicKey := privateKeyExport.Public()
 	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
 	if !ok {
+
 		return nil, errors.New("cannot assert type: publicKey is not of type *ecdsa.PublicKey")
 	}
 

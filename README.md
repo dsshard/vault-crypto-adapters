@@ -75,7 +75,7 @@ LIST /v1/key-managers/{chain}
 ```json
 {
   "data": {
-    "keys": ["svc", "anotherService", …]
+    "keys": ["svc", "anotherService"]
   }
 }
 ```

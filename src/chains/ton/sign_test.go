@@ -17,7 +17,7 @@ func TestTonSignHash(t *testing.T) {
 	// Create manager
 	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/ton")
 	req.Storage = storage
-	req.Data = map[string]interface{}{"serviceName": "svc"}
+	req.Data = map[string]interface{}{"service_name": "svc"}
 	account, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
 

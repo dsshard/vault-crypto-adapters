@@ -25,36 +25,13 @@ func PathCreateAndList() *framework.Path {
 				Callback: createKeyManager,
 			},
 			logical.ListOperation: &framework.PathOperation{
-				Callback: listKeyManagers,
+				Callback: backend.WrapperListKeyManager(config.Chain.TRX),
 			},
 		},
-		HelpSynopsis:    "Create or list TRON key-managers",
-		HelpDescription: "POST to import or generate a TRON key; LIST to enumerate all services.",
-		Fields: map[string]*framework.FieldSchema{
-			"serviceName": {
-				Type:        framework.TypeString,
-				Description: "Identifier for the key-manager (e.g. your service name).",
-			},
-			"privateKey": {
-				Type:        framework.TypeString,
-				Description: "(Optional) Hex string of the 32-byte TRON private key. If omitted, a random key is generated.",
-				Default:     "",
-			},
-		},
+		HelpSynopsis:    backend.DefaultHelpHelpSynopsisCreateList,
+		HelpDescription: backend.DefaultHelpDescriptionCreateList,
+		Fields:          backend.DefaultCreateListManager,
 	}
-}
-
-func listKeyManagers(
-	ctx context.Context,
-	req *logical.Request,
-	data *framework.FieldData,
-) (*logical.Response, error) {
-	names, err := req.Storage.List(ctx, fmt.Sprintf("key-managers/%s/", config.Chain.TRX))
-	if err != nil {
-		log.Error("Failed to list key-managers", "error", err)
-		return nil, err
-	}
-	return logical.ListResponse(names), nil
 }
 
 func createKeyManager(
@@ -63,12 +40,12 @@ func createKeyManager(
 	data *framework.FieldData,
 ) (*logical.Response, error) {
 	// Получаем serviceName
-	serviceName, ok := data.Get("serviceName").(string)
+	serviceName, ok := data.Get("service_name").(string)
 	if !ok || serviceName == "" {
 		return nil, errInvalidType
 	}
 	// Опциональный импорт приватного ключа
-	privHexInput, ok := data.Get("privateKey").(string)
+	privateKey, ok := data.Get("private_key").(string)
 	if !ok {
 		return nil, errInvalidType
 	}
@@ -83,9 +60,9 @@ func createKeyManager(
 	}
 
 	// 1) Импорт или генерация приватного ключа
-	var privKey *ecdsa.PrivateKey
-	if privHexInput != "" {
-		m := regexp.MustCompile(`^[0-9a-fA-F]{64}$`).FindString(privHexInput)
+	var privateKeyExport *ecdsa.PrivateKey
+	if privateKey != "" {
+		m := regexp.MustCompile(`^[0-9a-fA-F]{64}$`).FindString(privateKey)
 		if m == "" {
 			return nil, fmt.Errorf("invalid private key")
 		}
@@ -94,27 +71,27 @@ func createKeyManager(
 			return nil, fmt.Errorf("invalid privateKey hex: %w", err)
 		}
 		secpPriv, _ := btcec.PrivKeyFromBytes(bb)
-		privKey = secpPriv.ToECDSA()
+		privateKeyExport = secpPriv.ToECDSA()
 	} else {
 		// случайная генерация
 		var err error
-		privKey, err = ecdsa.GenerateKey(btcec.S256(), rand.Reader)
+		privateKeyExport, err = ecdsa.GenerateKey(btcec.S256(), rand.Reader)
 		if err != nil {
 			return nil, fmt.Errorf("failed to generate key: %w", err)
 		}
 	}
-	defer ZeroKey(privKey)
+	defer ZeroKey(privateKeyExport)
 
 	// 2) Собираем KeyPair
-	privBytes := privKey.D.Bytes()
-	secpPriv, _ := btcec.PrivKeyFromBytes(privBytes)
+	privateBytes := privateKeyExport.D.Bytes()
+	secpPriv, _ := btcec.PrivKeyFromBytes(privateBytes)
 	pubKey := secpPriv.PubKey() // *btcec.PublicKey
 	pubBytes := pubKey.SerializeUncompressed()
 	ecdsaPub := pubKey.ToECDSA()
 	address := DeriveAddress(ecdsaPub)
 
 	kp := &types.KeyPair{
-		PrivateKey: hex.EncodeToString(privBytes),
+		PrivateKey: hex.EncodeToString(privateBytes),
 		PublicKey:  hex.EncodeToString(pubBytes),
 		Address:    address,
 	}

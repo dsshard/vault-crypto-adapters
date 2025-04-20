@@ -47,12 +47,11 @@ func GetKeyPairByAddressAndChain(
 ) (*types.KeyPair, error) {
 	keyManager, err := RetrieveKeyManager(ctx, req, chain, name)
 	if err != nil {
-		log.Error("Failed to retrieve the signing keyManager",
-			"service_name", address, "error", err)
 		return nil, fmt.Errorf("error retrieving signing keyManager %s", address)
 	}
 
 	if keyManager == nil {
+
 		return nil, fmt.Errorf("signing keyManager %s does not exist", address)
 	}
 

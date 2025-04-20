@@ -15,7 +15,7 @@ func TestTrxSignHash(t *testing.T) {
 	// Create manager
 	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/trx")
 	req.Storage = storage
-	req.Data = map[string]interface{}{"serviceName": "svc"}
+	req.Data = map[string]interface{}{"service_name": "svc"}
 	account, err := b.HandleRequest(context.Background(), req)
 	assert.NoError(t, err)
 

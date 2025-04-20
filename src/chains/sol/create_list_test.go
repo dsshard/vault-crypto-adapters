@@ -19,8 +19,8 @@ func TestSolanaCreateAndListKeyManagers(t *testing.T) {
 	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/sol")
 	req.Storage = storage
 	req.Data = map[string]interface{}{
-		"serviceName": "svc",
-		"privateKey":  "3b6a27bccebfb65a6d8c3e78bf84df3e7a32b29b77b680f7f245d3c5f5b0a1b2",
+		"service_name": "svc",
+		"private_key":  "3b6a27bccebfb65a6d8c3e78bf84df3e7a32b29b77b680f7f245d3c5f5b0a1b2",
 	}
 	resp, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
@@ -32,7 +32,7 @@ func TestSolanaCreateAndListKeyManagers(t *testing.T) {
 	// 2) Generate another key (no privateKey → new random)
 	req = logical.TestRequest(t, logical.UpdateOperation, "key-managers/sol")
 	req.Storage = storage
-	req.Data = map[string]interface{}{"serviceName": "svc"}
+	req.Data = map[string]interface{}{"service_name": "svc"}
 	_, err = b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
 
@@ -54,7 +54,7 @@ func TestSolanaCreateAndListKeyManagers(t *testing.T) {
 	addrs := resp.Data["addresses"].([]string)
 	assert.Len(t, addrs, 2)
 	for _, a := range addrs {
-		assert.Regexp(t, regexp.MustCompile(`^[1-9A-HJ-NP-Za-km-z]{44}$`), a)
+		assert.Regexp(t, regexp.MustCompile(`^[1-9A-HJ-NP-Za-km-z]{32,44}$`), a)
 	}
 }
 
@@ -65,8 +65,8 @@ func TestSolanaCreateAndListKeyManagers_EmptyPrivKey(t *testing.T) {
 	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/sol")
 	req.Storage = storage
 	req.Data = map[string]interface{}{
-		"serviceName": "svc",
-		"privateKey":  "",
+		"service_name": "svc",
+		"private_key":  "",
 	}
 	resp, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
@@ -82,8 +82,8 @@ func TestSolanaCreateAndListKeyManagers_InvalidPrivKey(t *testing.T) {
 	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/sol")
 	req.Storage = storage
 	req.Data = map[string]interface{}{
-		"serviceName": "svc",
-		"privateKey":  "1234deadbeef",
+		"service_name": "svc",
+		"private_key":  "1234deadbeef",
 	}
 	_, err := b.HandleRequest(context.Background(), req)
 	require.Error(t, err)

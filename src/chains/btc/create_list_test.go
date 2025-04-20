@@ -16,8 +16,8 @@ func TestBtcCreateAndListKeyManagers(t *testing.T) {
 	req.Storage = storage
 	// 32‑byte secp256k1 privkey hex
 	req.Data = map[string]interface{}{
-		"serviceName": "svc",
-		"privateKey":  "KzQJ9vR4JeoJicejXmdvjcoDmZHa665diNxt17o3KRw3Hvix5CA5",
+		"service_name": "svc",
+		"private_key":  "KzQJ9vR4JeoJicejXmdvjcoDmZHa665diNxt17o3KRw3Hvix5CA5",
 	}
 	resp, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
@@ -27,7 +27,7 @@ func TestBtcCreateAndListKeyManagers(t *testing.T) {
 	// Generate another key
 	req = logical.TestRequest(t, logical.UpdateOperation, "key-managers/btc")
 	req.Storage = storage
-	req.Data = map[string]interface{}{"serviceName": "svc"}
+	req.Data = map[string]interface{}{"service_name": "svc"}
 	_, err = b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
 
@@ -56,8 +56,8 @@ func TestBtcCreateAndListKeyManagers2(t *testing.T) {
 	req.Storage = storage
 	// 32‑byte secp256k1 privkey hex
 	req.Data = map[string]interface{}{
-		"serviceName": "svc",
-		"privateKey":  "",
+		"service_name": "svc",
+		"private_key":  "",
 	}
 	resp, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
@@ -73,8 +73,8 @@ func TestBtcCreateAndListKeyManagers3(t *testing.T) {
 	req.Storage = storage
 	// 32‑byte secp256k1 privkey hex
 	req.Data = map[string]interface{}{
-		"serviceName": "svc",
-		"privateKey":  "123",
+		"service_name": "svc",
+		"private_key":  "123",
 	}
 
 	_, err := b.HandleRequest(context.Background(), req)

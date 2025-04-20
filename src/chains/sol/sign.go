@@ -14,7 +14,6 @@ import (
 	"github.com/portto/solana-go-sdk/types"
 )
 
-// PathSignSol binds POST /key-managers/sol/{name}/sign
 func PathSignSol() *framework.Path {
 	return &framework.Path{
 		Pattern:        config.CreatePathSign(config.Chain.SOL),
@@ -24,18 +23,7 @@ func PathSignSol() *framework.Path {
 		},
 		HelpSynopsis:    "Sign an arbitrary hex message with Solana ED25519 key",
 		HelpDescription: "POST name, message (hex string) → signature (hex)",
-		Fields: map[string]*framework.FieldSchema{
-			"name": {Type: framework.TypeString},
-			"hash": {
-				Type:        framework.TypeString,
-				Description: "Hex string of the hash that should be signed.",
-				Default:     "",
-			},
-			"address": {
-				Type:        framework.TypeString,
-				Description: "The address that belongs to a private key in the key-manager.",
-			},
-		},
+		Fields:          backend.DefaultSignOperation,
 	}
 }
 

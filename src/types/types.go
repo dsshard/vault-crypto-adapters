@@ -1,6 +1,9 @@
 package types
 
-import "errors"
+import (
+	"errors"
+	"github.com/hashicorp/vault/sdk/framework"
+)
 
 type KeyPair struct {
 	PrivateKey string `json:"private_key"`
@@ -16,3 +19,10 @@ type KeyManager struct {
 var (
 	ErrInvalidType = errors.New("invalid input type")
 )
+
+type ResponseDataCreateList struct {
+	*framework.FieldData
+	ServiceName string `json:"service_name"`
+	Address     string `json:"address"`
+	PublicKey   string `json:"public_key"`
+}

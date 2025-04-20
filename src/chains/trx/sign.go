@@ -22,18 +22,7 @@ func PathSign() *framework.Path {
 		},
 		HelpSynopsis:    "Sign a SHA256 hash for TRON transaction.",
 		HelpDescription: "POST name & hash (hex SHA256 rawData) → signature (hex r||s||v).",
-		Fields: map[string]*framework.FieldSchema{
-			"name": {Type: framework.TypeString},
-			"hash": {
-				Type:        framework.TypeString,
-				Description: "Hex string of the hash that should be signed.",
-				Default:     "",
-			},
-			"address": {
-				Type:        framework.TypeString,
-				Description: "The address that belongs to a private key in the key-manager.",
-			},
-		},
+		Fields:          backend.DefaultSignOperation,
 	}
 }
 
@@ -52,13 +41,13 @@ func sign(
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving signing keyManager %s", address)
 	}
-	privHex := keyManager.PrivateKey
+	privateKeyHex := keyManager.PrivateKey
 
-	privKey, err := crypto.HexToECDSA(privHex)
+	privateKey, err := crypto.HexToECDSA(privateKeyHex)
 	if err != nil {
 		return nil, fmt.Errorf("invalid private key hex: %w", err)
 	}
-	defer ZeroKey(privKey)
+	defer ZeroKey(privateKey)
 
 	// 3) Декодируем SHA256‑хеш (hex)
 	hashBytes, err := hex.DecodeString(hashInput)
@@ -67,7 +56,7 @@ func sign(
 	}
 
 	// 4) Подписываем через go-ethereum crypto.Sign (r||s||v, 65 байт)
-	sigBytes, err := crypto.Sign(hashBytes, privKey)
+	sigBytes, err := crypto.Sign(hashBytes, privateKey)
 	if err != nil {
 		return nil, fmt.Errorf("sign failed: %w", err)
 	}

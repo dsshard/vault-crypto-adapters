@@ -1,10 +1,9 @@
-package chains
+package backend
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/dsshard/vault-crypto-adapters/src/backend"
 	"github.com/dsshard/vault-crypto-adapters/src/config"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/hashicorp/vault/sdk/framework"
@@ -22,7 +21,7 @@ func PathReadAndDelete(chain config.ChainType) *framework.Path {
 		Fields: map[string]*framework.FieldSchema{
 			"name": {Type: framework.TypeString},
 		},
-		ExistenceCheck: backend.PathExistenceCheck,
+		ExistenceCheck: PathExistenceCheck,
 		Operations: map[logical.Operation]framework.OperationHandler{
 			logical.ReadOperation: &framework.PathOperation{
 				Callback: wrapperReadKeyManager(chain),
@@ -50,8 +49,8 @@ func readKeyManager(
 		return nil, errors.New("invalid input type")
 	}
 
-	log.Info("Retrieving key manager for service name", "service_name", serviceName)
-	keyManager, err := backend.RetrieveKeyManager(ctx, req, chain, serviceName)
+	log.Info("Retrieving key manager for name", "name", serviceName)
+	keyManager, err := RetrieveKeyManager(ctx, req, chain, serviceName)
 	if err != nil {
 		return nil, err
 	}
@@ -89,10 +88,10 @@ func deleteKeyManager(
 		return nil, errors.New("invalid input type")
 	}
 
-	policy, err := backend.RetrieveKeyManager(ctx, req, chain, serviceName)
+	policy, err := RetrieveKeyManager(ctx, req, chain, serviceName)
 	if err != nil {
-		log.Error("Failed to retrieve the key-manager by service_name",
-			"service_name", serviceName, "error", err)
+		log.Error("Failed to retrieve the key-manager by name",
+			"name", serviceName, "error", err)
 		return nil, err
 	}
 
@@ -106,4 +105,24 @@ func deleteKeyManager(
 		return nil, err
 	}
 	return nil, nil
+}
+
+func WrapperListKeyManager(chain config.ChainType) func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	return func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+		return listKeyManagers(chain, ctx, req, data)
+	}
+}
+
+func listKeyManagers(
+	chain config.ChainType,
+	ctx context.Context,
+	req *logical.Request,
+	data *framework.FieldData,
+) (*logical.Response, error) {
+	names, err := req.Storage.List(ctx, fmt.Sprintf("key-managers/%s/", chain))
+	if err != nil {
+		log.Error("Failed to list key-managers", "error", err)
+		return nil, err
+	}
+	return logical.ListResponse(names), nil
 }

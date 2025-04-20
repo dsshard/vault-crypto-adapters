@@ -24,36 +24,13 @@ func PathCreateAndList() *framework.Path {
 				Callback: tonCreateKeyManager,
 			},
 			logical.ListOperation: &framework.PathOperation{
-				Callback: tonListKeyManagers,
+				Callback: backend.WrapperListKeyManager(config.Chain.TON),
 			},
 		},
-		HelpSynopsis:    "Create or list TON key‑managers",
-		HelpDescription: "POST to import or generate a TON ed25519 key; LIST to enumerate all services.",
-		Fields: map[string]*framework.FieldSchema{
-			"serviceName": {
-				Type:        framework.TypeString,
-				Description: "Identifier for the key‑manager (e.g. your service name).",
-			},
-			"privateKey": {
-				Type:        framework.TypeString,
-				Description: "(Optional) Hex-encoded 32-byte ed25519 seed. If omitted, a new random key is generated.",
-				Default:     "",
-			},
-		},
+		HelpSynopsis:    backend.DefaultHelpHelpSynopsisCreateList,
+		HelpDescription: backend.DefaultHelpDescriptionCreateList,
+		Fields:          backend.DefaultCreateListManager,
 	}
-}
-
-func tonListKeyManagers(
-	ctx context.Context,
-	req *logical.Request,
-	data *framework.FieldData,
-) (*logical.Response, error) {
-	services, err := req.Storage.List(ctx, fmt.Sprintf("key-managers/%s/", config.Chain.TON))
-	if err != nil {
-		log.Error("Failed to list key-managers", "error", err)
-		return nil, err
-	}
-	return logical.ListResponse(services), nil
 }
 
 func tonCreateKeyManager(
@@ -62,23 +39,23 @@ func tonCreateKeyManager(
 	data *framework.FieldData,
 ) (*logical.Response, error) {
 	// serviceName
-	svc, ok := data.Get("serviceName").(string)
-	if !ok || svc == "" {
-		return nil, fmt.Errorf("serviceName must be a non-empty string")
+	serviceName, ok := data.Get("service_name").(string)
+	if !ok || serviceName == "" {
+		return nil, fmt.Errorf("service_name must be a non-empty string")
 	}
 	// optional import
-	privateKey, ok := data.Get("privateKey").(string)
+	privateKey, ok := data.Get("private_key").(string)
 	if !ok {
-		return nil, fmt.Errorf("privateKey must be a hex string")
+		return nil, fmt.Errorf("private_key must be a hex string")
 	}
 
 	// retrieve or init KeyManager
-	km, err := backend.RetrieveKeyManager(ctx, req, config.Chain.TON, svc)
+	km, err := backend.RetrieveKeyManager(ctx, req, config.Chain.TON, serviceName)
 	if err != nil {
 		return nil, err
 	}
 	if km == nil {
-		km = &types.KeyManager{ServiceName: svc}
+		km = &types.KeyManager{ServiceName: serviceName}
 	}
 
 	// generate or import ed25519 key
@@ -114,7 +91,7 @@ func tonCreateKeyManager(
 
 	// store back
 	entry, _ := logical.StorageEntryJSON(
-		fmt.Sprintf("key-managers/%s/%s", config.Chain.TON, svc),
+		fmt.Sprintf("key-managers/%s/%s", config.Chain.TON, serviceName),
 		km,
 	)
 	if err := req.Storage.Put(ctx, entry); err != nil {
