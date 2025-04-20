@@ -2,8 +2,6 @@ module github.com/dsshard/vault-crypto-adapters
 
 go 1.24
 
-toolchain go1.24.2
-
 require (
 	github.com/btcsuite/btcd/btcec/v2 v2.3.4
 	github.com/btcsuite/btcd/btcutil v1.1.5
