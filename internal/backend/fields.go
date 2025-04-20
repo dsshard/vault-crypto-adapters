@@ -2,11 +2,16 @@ package backend
 
 import "github.com/hashicorp/vault/sdk/framework"
 
-var DefaultCreateListManager = map[string]*framework.FieldSchema{
+var DefaultCrudOperations = map[string]*framework.FieldSchema{
 	"name": {Type: framework.TypeString},
 	"private_key": {
 		Type:        framework.TypeString,
 		Description: "(Optional, default random key) Hex string for the private key",
+		Default:     "",
+	},
+	"rnd": {
+		Type:        framework.TypeString,
+		Description: "(default random key) only for vault success operations",
 		Default:     "",
 	},
 }

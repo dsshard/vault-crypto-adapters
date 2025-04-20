@@ -32,7 +32,7 @@ func PathCrud() *framework.Path {
 		},
 		HelpSynopsis:    backend.DefaultHelpHelpSynopsisCreateList,
 		HelpDescription: backend.DefaultHelpDescriptionCreateList,
-		Fields:          backend.DefaultCreateListManager,
+		Fields:          backend.DefaultCrudOperations,
 	}
 }
 
