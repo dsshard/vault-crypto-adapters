@@ -1,7 +1,4 @@
-[![Go Report Card](https://goreportcard.com/badge/github.com/Brahma-fi/vault-eth-signer)](https://goreportcard.com/report/github.com/Brahma-fi/vault-eth-signer)
-[![Vault Ethereum Signer Plugin](https://github.com/Brahma-fi/vault-eth-signer/actions/workflows/vault-eth-signer.yml/badge.svg)](https://github.com/Brahma-fi/vault-eth-signer/actions/workflows/vault-eth-signer.yml)
-
-# Vault-Eth-Signer
+# Vault-Crypto-Adapters
 Eth key plugin is a HashiCorp Vault plugin that supports `ecdsa.secp256k1` based signing, with an API interface
 that turns vault into a software based hardware security module(HSM) device.
 
