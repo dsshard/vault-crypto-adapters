@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/dsshard/vault-crypto-adapters/internal/backend"
 	"github.com/dsshard/vault-crypto-adapters/internal/config"
@@ -17,15 +18,18 @@ import (
 	"github.com/hashicorp/vault/sdk/logical"
 )
 
-func PathCreateAndList() *framework.Path {
+func PathCrud() *framework.Path {
 	return &framework.Path{
-		Pattern: config.CreatePathCreateListPattern(config.Chain.TRX),
+		Pattern: config.CreatePathCrud(config.Chain.TRX),
 		Operations: map[logical.Operation]framework.OperationHandler{
 			logical.UpdateOperation: &framework.PathOperation{
 				Callback: createKeyManager,
 			},
-			logical.ListOperation: &framework.PathOperation{
-				Callback: backend.WrapperListKeyManager(config.Chain.TRX),
+			logical.ReadOperation: &framework.PathOperation{
+				Callback: backend.WrapperReadKeyManager(config.Chain.TRX),
+			},
+			logical.DeleteOperation: &framework.PathOperation{
+				Callback: backend.WrapperDeleteKeyManager(config.Chain.TRX),
 			},
 		},
 		HelpSynopsis:    backend.DefaultHelpHelpSynopsisCreateList,
@@ -40,9 +44,9 @@ func createKeyManager(
 	data *framework.FieldData,
 ) (*logical.Response, error) {
 	// Получаем serviceName
-	serviceName, ok := data.Get("service_name").(string)
-	if !ok || serviceName == "" {
-		return nil, errInvalidType
+	serviceName, ok := data.Get("name").(string)
+	if !ok {
+		return nil, errors.New("invalid input type")
 	}
 	// Опциональный импорт приватного ключа
 	privateKey, ok := data.Get("private_key").(string)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/ed25519"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/dsshard/vault-crypto-adapters/internal/backend"
 	"github.com/dsshard/vault-crypto-adapters/internal/config"
@@ -17,13 +18,18 @@ import (
 	"github.com/portto/solana-go-sdk/types"
 )
 
-func PathCreateAndList() *framework.Path {
+func PathCrud() *framework.Path {
 	return &framework.Path{
-		Pattern: config.CreatePathCreateListPattern(config.Chain.SOL),
+		Pattern: config.CreatePathCrud(config.Chain.SOL),
 		Operations: map[logical.Operation]framework.OperationHandler{
-			logical.UpdateOperation: &framework.PathOperation{Callback: createKeyManager},
-			logical.ListOperation: &framework.PathOperation{
-				Callback: backend.WrapperListKeyManager(config.Chain.SOL),
+			logical.UpdateOperation: &framework.PathOperation{
+				Callback: createKeyManager,
+			},
+			logical.ReadOperation: &framework.PathOperation{
+				Callback: backend.WrapperReadKeyManager(config.Chain.SOL),
+			},
+			logical.DeleteOperation: &framework.PathOperation{
+				Callback: backend.WrapperDeleteKeyManager(config.Chain.SOL),
 			},
 		},
 		HelpSynopsis:    backend.DefaultHelpHelpSynopsisCreateList,
@@ -38,9 +44,9 @@ func createKeyManager(
 	req *logical.Request,
 	data *framework.FieldData,
 ) (*logical.Response, error) {
-	serviceName := data.Get("service_name").(string)
-	if serviceName == "" {
-		return nil, fmt.Errorf("service_name is required")
+	serviceName, ok := data.Get("name").(string)
+	if !ok {
+		return nil, errors.New("invalid input type")
 	}
 	privateKey := strings.TrimSpace(data.Get("private_key").(string))
 

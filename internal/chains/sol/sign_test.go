@@ -13,21 +13,18 @@ import (
 
 func TestSolSign(t *testing.T) {
 	b, storage := test.NewTestBackend(t)
-	const svc = "signer"
 
 	// create key manager
-	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/sol")
+	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/sol/svc")
 	req.Storage = storage
-	req.Data = map[string]interface{}{"service_name": svc}
 	account, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
 
 	// arbitrary message
 	msg := "deadbeef"
-	req = logical.TestRequest(t, logical.CreateOperation, "key-managers/sol/"+svc+"/sign")
+	req = logical.TestRequest(t, logical.CreateOperation, "key-managers/sol/svc/sign")
 	req.Storage = storage
 	req.Data = map[string]interface{}{
-		"name":    "svc",
 		"hash":    msg,
 		"address": account.Data["address"],
 	}

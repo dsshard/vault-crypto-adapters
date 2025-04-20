@@ -3,6 +3,7 @@ package btc
 import (
 	"context"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/dsshard/vault-crypto-adapters/internal/backend"
 	"github.com/dsshard/vault-crypto-adapters/internal/config"
@@ -15,13 +16,18 @@ import (
 	"github.com/hashicorp/vault/sdk/logical"
 )
 
-func PathCreateAndList() *framework.Path {
+func PathCrud() *framework.Path {
 	return &framework.Path{
-		Pattern: config.CreatePathCreateListPattern(config.Chain.BTC),
+		Pattern: config.CreatePathCrud(config.Chain.BTC),
 		Operations: map[logical.Operation]framework.OperationHandler{
-			logical.UpdateOperation: &framework.PathOperation{Callback: createKeyManager},
-			logical.ListOperation: &framework.PathOperation{
-				Callback: backend.WrapperListKeyManager(config.Chain.BTC),
+			logical.UpdateOperation: &framework.PathOperation{
+				Callback: createKeyManager,
+			},
+			logical.ReadOperation: &framework.PathOperation{
+				Callback: backend.WrapperReadKeyManager(config.Chain.BTC),
+			},
+			logical.DeleteOperation: &framework.PathOperation{
+				Callback: backend.WrapperDeleteKeyManager(config.Chain.BTC),
 			},
 		},
 		HelpSynopsis:    backend.DefaultHelpHelpSynopsisCreateList,
@@ -31,12 +37,11 @@ func PathCreateAndList() *framework.Path {
 }
 
 func createKeyManager(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	serviceName, _ := data.Get("service_name").(string)
-	privateKey := strings.TrimSpace(data.Get("private_key").(string))
-
-	if serviceName == "" {
-		return nil, fmt.Errorf("service_name must be set")
+	serviceName, ok := data.Get("name").(string)
+	if !ok {
+		return nil, errors.New("invalid input type")
 	}
+	privateKey := strings.TrimSpace(data.Get("private_key").(string))
 
 	km, err := backend.RetrieveKeyManager(ctx, req, config.Chain.BTC, serviceName)
 	if err != nil {

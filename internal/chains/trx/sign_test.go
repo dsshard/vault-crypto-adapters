@@ -13,9 +13,8 @@ func TestTrxSignHash(t *testing.T) {
 	b, storage := test.NewTestBackend(t)
 
 	// Create manager
-	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/trx")
+	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/trx/svc")
 	req.Storage = storage
-	req.Data = map[string]interface{}{"service_name": "svc"}
 	account, err := b.HandleRequest(context.Background(), req)
 	assert.NoError(t, err)
 

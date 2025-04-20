@@ -5,6 +5,7 @@ import (
 	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/dsshard/vault-crypto-adapters/internal/backend"
 	"github.com/dsshard/vault-crypto-adapters/internal/config"
@@ -16,15 +17,18 @@ import (
 	"github.com/hashicorp/vault/sdk/logical"
 )
 
-func PathCreateAndList() *framework.Path {
+func PathCrud() *framework.Path {
 	return &framework.Path{
-		Pattern: config.CreatePathCreateListPattern(config.Chain.TON),
+		Pattern: config.CreatePathCrud(config.Chain.TON),
 		Operations: map[logical.Operation]framework.OperationHandler{
 			logical.UpdateOperation: &framework.PathOperation{
-				Callback: tonCreateKeyManager,
+				Callback: createKeyManager,
 			},
-			logical.ListOperation: &framework.PathOperation{
-				Callback: backend.WrapperListKeyManager(config.Chain.TON),
+			logical.ReadOperation: &framework.PathOperation{
+				Callback: backend.WrapperReadKeyManager(config.Chain.TON),
+			},
+			logical.DeleteOperation: &framework.PathOperation{
+				Callback: backend.WrapperDeleteKeyManager(config.Chain.TON),
 			},
 		},
 		HelpSynopsis:    backend.DefaultHelpHelpSynopsisCreateList,
@@ -33,15 +37,15 @@ func PathCreateAndList() *framework.Path {
 	}
 }
 
-func tonCreateKeyManager(
+func createKeyManager(
 	ctx context.Context,
 	req *logical.Request,
 	data *framework.FieldData,
 ) (*logical.Response, error) {
 	// serviceName
-	serviceName, ok := data.Get("service_name").(string)
-	if !ok || serviceName == "" {
-		return nil, fmt.Errorf("service_name must be a non-empty string")
+	serviceName, ok := data.Get("name").(string)
+	if !ok {
+		return nil, errors.New("invalid input type")
 	}
 	// optional import
 	privateKey, ok := data.Get("private_key").(string)

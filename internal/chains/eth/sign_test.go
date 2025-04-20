@@ -13,9 +13,8 @@ import (
 func TestEthSignHash(t *testing.T) {
 	b, storage := test.NewTestBackend(t)
 	// create
-	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/eth")
+	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/eth/svc")
 	req.Storage = storage
-	req.Data = map[string]interface{}{"service_name": "svc"}
 	account, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
 

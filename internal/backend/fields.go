@@ -3,11 +3,7 @@ package backend
 import "github.com/hashicorp/vault/sdk/framework"
 
 var DefaultCreateListManager = map[string]*framework.FieldSchema{
-	"service_name": {
-		Type:        framework.TypeString,
-		Description: "The service that is the owner of the private-key",
-		Default:     "",
-	},
+	"name": {Type: framework.TypeString},
 	"private_key": {
 		Type:        framework.TypeString,
 		Description: "(Optional, default random key) Hex string for the private key",
@@ -29,7 +25,7 @@ var DefaultSignOperation = map[string]*framework.FieldSchema{
 
 var DefaultHelpDescriptionCreateList = `
     POST - create a new keyManager
-    LIST - list all keyManagers
+    GET - list all addresses
 `
 
 var DefaultHelpHelpSynopsisCreateList = "Create new key-manager with input private-key or random private-key & list all the key-managers maintained by the plugin backend."

@@ -10,30 +10,7 @@ import (
 	"github.com/hashicorp/vault/sdk/logical"
 )
 
-func PathReadAndDelete(chain config.ChainType) *framework.Path {
-	return &framework.Path{
-		Pattern:      config.CreatePathReadAndDelete(chain),
-		HelpSynopsis: "Create, get or delete a policy by name",
-		HelpDescription: `
-    GET - return the key-manager by the name
-    DELETE - deletes the key-manager by the name
-    `,
-		Fields: map[string]*framework.FieldSchema{
-			"name": {Type: framework.TypeString},
-		},
-		ExistenceCheck: PathExistenceCheck,
-		Operations: map[logical.Operation]framework.OperationHandler{
-			logical.ReadOperation: &framework.PathOperation{
-				Callback: wrapperReadKeyManager(chain),
-			},
-			logical.DeleteOperation: &framework.PathOperation{
-				Callback: wrapperDeleteKeyManager(chain),
-			},
-		},
-	}
-}
-
-func wrapperReadKeyManager(chain config.ChainType) func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+func WrapperReadKeyManager(chain config.ChainType) func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	return func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 		return readKeyManager(chain, ctx, req, data)
 	}
@@ -58,20 +35,24 @@ func readKeyManager(
 		return nil, fmt.Errorf("keyManager does not exist")
 	}
 
-	addresses := make([]string, len(keyManager.KeyPairs))
-	for i := range keyManager.KeyPairs {
-		addresses[i] = keyManager.KeyPairs[i].Address
+	// Собираем пары address + public_key
+	pairs := make([]map[string]string, len(keyManager.KeyPairs))
+	for i, kp := range keyManager.KeyPairs {
+		pairs[i] = map[string]string{
+			"address":    kp.Address,
+			"public_key": kp.PublicKey,
+		}
 	}
 
 	return &logical.Response{
 		Data: map[string]interface{}{
-			"service_name": keyManager.ServiceName,
-			"addresses":    addresses,
+			"service_name": serviceName,
+			"key_pairs":    pairs,
 		},
 	}, nil
 }
 
-func wrapperDeleteKeyManager(chain config.ChainType) func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+func WrapperDeleteKeyManager(chain config.ChainType) func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	return func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 		return deleteKeyManager(chain, ctx, req, data)
 	}
@@ -105,23 +86,4 @@ func deleteKeyManager(
 		return nil, err
 	}
 	return nil, nil
-}
-
-func WrapperListKeyManager(chain config.ChainType) func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	return func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-		return listKeyManagers(chain, ctx, req)
-	}
-}
-
-func listKeyManagers(
-	chain config.ChainType,
-	ctx context.Context,
-	req *logical.Request,
-) (*logical.Response, error) {
-	names, err := req.Storage.List(ctx, fmt.Sprintf("key-managers/%s/", chain))
-	if err != nil {
-		log.Error("Failed to list key-managers", "error", err)
-		return nil, err
-	}
-	return logical.ListResponse(names), nil
 }

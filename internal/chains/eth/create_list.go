@@ -17,15 +17,18 @@ import (
 	"github.com/hashicorp/vault/sdk/logical"
 )
 
-func PathCreateAndList() *framework.Path {
+func PathCrud() *framework.Path {
 	return &framework.Path{
-		Pattern: config.CreatePathCreateListPattern(config.Chain.ETH),
+		Pattern: config.CreatePathCrud(config.Chain.ETH),
 		Operations: map[logical.Operation]framework.OperationHandler{
 			logical.UpdateOperation: &framework.PathOperation{
 				Callback: createKeyManager,
 			},
-			logical.ListOperation: &framework.PathOperation{
-				Callback: backend.WrapperListKeyManager(config.Chain.ETH),
+			logical.ReadOperation: &framework.PathOperation{
+				Callback: backend.WrapperReadKeyManager(config.Chain.ETH),
+			},
+			logical.DeleteOperation: &framework.PathOperation{
+				Callback: backend.WrapperDeleteKeyManager(config.Chain.ETH),
 			},
 		},
 		HelpSynopsis:    backend.DefaultHelpHelpSynopsisCreateList,
@@ -39,9 +42,9 @@ func createKeyManager(
 	req *logical.Request,
 	data *framework.FieldData,
 ) (*logical.Response, error) {
-	serviceInput, ok := data.Get("service_name").(string)
+	serviceName, ok := data.Get("name").(string)
 	if !ok {
-		return nil, types.ErrInvalidType
+		return nil, errors.New("invalid input type")
 	}
 
 	privateKey, ok := data.Get("private_key").(string)
@@ -49,14 +52,14 @@ func createKeyManager(
 		return nil, types.ErrInvalidType
 	}
 
-	keyManager, err := backend.RetrieveKeyManager(ctx, req, config.Chain.ETH, serviceInput)
+	keyManager, err := backend.RetrieveKeyManager(ctx, req, config.Chain.ETH, serviceName)
 	if err != nil {
 		return nil, err
 	}
 
 	if keyManager == nil {
 		keyManager = &types.KeyManager{
-			ServiceName: serviceInput,
+			ServiceName: serviceName,
 		}
 	}
 
@@ -101,7 +104,7 @@ func createKeyManager(
 
 	keyManager.KeyPairs = append(keyManager.KeyPairs, keyPair)
 
-	policyPath := fmt.Sprintf("key-managers/%s/%s", config.Chain.ETH, serviceInput)
+	policyPath := fmt.Sprintf("key-managers/%s/%s", config.Chain.ETH, serviceName)
 	entry, _ := logical.StorageEntryJSON(policyPath, keyManager)
 	err = req.Storage.Put(ctx, entry)
 	if err != nil {
