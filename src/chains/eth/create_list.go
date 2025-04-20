@@ -88,7 +88,6 @@ func createKeyManager(
 	publicKey := privateKeyExport.Public()
 	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
 	if !ok {
-
 		return nil, errors.New("cannot assert type: publicKey is not of type *ecdsa.PublicKey")
 	}
 

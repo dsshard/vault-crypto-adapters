@@ -35,7 +35,6 @@ func createKeyManager(ctx context.Context, req *logical.Request, data *framework
 	privateKey := strings.TrimSpace(data.Get("private_key").(string))
 
 	if serviceName == "" {
-
 		return nil, fmt.Errorf("service_name must be set")
 	}
 

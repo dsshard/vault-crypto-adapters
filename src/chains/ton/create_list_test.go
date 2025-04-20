@@ -2,7 +2,6 @@ package ton_test
 
 import (
 	"context"
-	"log"
 	"regexp"
 	"testing"
 
@@ -27,7 +26,6 @@ func TestTonCreateAndListKeyManagers(t *testing.T) {
 	require.NoError(t, err)
 
 	addr := resp.Data["address"].(string)
-	log.Print(resp)
 	assert.Equal(t, "EQB2trRSt_ZF-gnMRgJhu_oORG6W0T8Ja75CmjnjRR1mRYL0", addr)
 
 	// 2) Generate another key (empty privateKey → new random)

@@ -109,7 +109,7 @@ func deleteKeyManager(
 
 func WrapperListKeyManager(chain config.ChainType) func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	return func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-		return listKeyManagers(chain, ctx, req, data)
+		return listKeyManagers(chain, ctx, req)
 	}
 }
 
@@ -117,7 +117,6 @@ func listKeyManagers(
 	chain config.ChainType,
 	ctx context.Context,
 	req *logical.Request,
-	data *framework.FieldData,
 ) (*logical.Response, error) {
 	names, err := req.Storage.List(ctx, fmt.Sprintf("key-managers/%s/", chain))
 	if err != nil {

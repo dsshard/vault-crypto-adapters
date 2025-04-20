@@ -8,10 +8,12 @@ var Chain = struct {
 	TON ChainType
 	TRX ChainType
 	SOL ChainType
+	XRP ChainType
 }{
 	BTC: "btc",
 	ETH: "eth",
 	TON: "ton",
 	TRX: "trx",
 	SOL: "sol",
+	XRP: "xrp",
 }

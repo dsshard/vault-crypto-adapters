@@ -51,7 +51,6 @@ func GetKeyPairByAddressAndChain(
 	}
 
 	if keyManager == nil {
-
 		return nil, fmt.Errorf("signing keyManager %s does not exist", address)
 	}
 

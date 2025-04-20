@@ -14,7 +14,7 @@ import (
 	"github.com/portto/solana-go-sdk/types"
 )
 
-func PathSignSol() *framework.Path {
+func PathSign() *framework.Path {
 	return &framework.Path{
 		Pattern:        config.CreatePathSign(config.Chain.SOL),
 		ExistenceCheck: backend.PathExistenceCheck,
