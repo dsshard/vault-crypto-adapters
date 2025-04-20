@@ -14,7 +14,7 @@ lint: ## Run linters
 
 .PHONY: build-linux-release
 build-linux-release:  ## - build a static release linux elf(binary)
-	@ CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GO) build -ldflags='-w -s -extldflags "-static"' -a -o "$(GOBIN)/release/linux/vault-crypto-adapters-$(version)" cmd/plugin/*.go
+	@ CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GO) build -ldflags='-w -s -extldflags "-static"' -a -o "$(GOBIN)/release/linux/vault-crypto-adapters-$(version)"
 	@ ls -lah $(GOBIN)/release/linux/vault-crypto-adapters-$(version)
 	@ shasum -a 256 $(GOBIN)/release/linux/vault-crypto-adapters-$(version)
 	@ mkdir -p ./.build/vault/plugins
@@ -35,7 +35,7 @@ build: build-common ## - build a debug binary to the current platform (windows, 
 	@ echo cleaning...
 	@ rm -f $(GOBIN)/debug/$(OS)/vault-crypto-adapters
 	@ echo building...
-	@ $(GO) build -tags dev -o "$(GOBIN)/debug/$(OS)/vault-crypto-adapters" cmd/plugin/*.go
+	@ $(GO) build -tags dev -o "$(GOBIN)/debug/$(OS)/vault-crypto-adapters"
 	@ ls -lah $(GOBIN)/debug/$(OS)/vault-crypto-adapters
 	@ shasum -a 256 $(GOBIN)/debug/$(OS)/vault-crypto-adapters
 
