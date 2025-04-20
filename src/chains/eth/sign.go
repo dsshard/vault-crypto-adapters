@@ -59,6 +59,10 @@ func sign(
 	}
 
 	privateKey, err := crypto.HexToECDSA(keyManager.PrivateKey)
+	if err != nil {
+		log.Error("Error converting hex to private key", "error", err)
+		return nil, fmt.Errorf("error reconstructing private key from retrieved hex")
+	}
 	defer ZeroKey(privateKey)
 
 	sig, err := crypto.Sign(common.HexToHash(hashInput).Bytes(), privateKey)

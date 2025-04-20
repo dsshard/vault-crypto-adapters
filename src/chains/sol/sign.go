@@ -45,6 +45,9 @@ func sign(
 	data *framework.FieldData,
 ) (*logical.Response, error) {
 	name, hashInput, address, err := backend.GetSignParamsFromData(data)
+	if err != nil {
+		return nil, fmt.Errorf("invalid request data: %w", err)
+	}
 
 	hashInput = strings.TrimPrefix(hashInput, "0x")
 	msgBytes, err := hex.DecodeString(hashInput)

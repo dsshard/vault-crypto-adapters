@@ -43,6 +43,9 @@ func signHash(
 	data *framework.FieldData,
 ) (*logical.Response, error) {
 	name, hashInput, address, err := backend.GetSignParamsFromData(data)
+	if err != nil {
+		return nil, fmt.Errorf("invalid request data: %w", err)
+	}
 
 	// 2) Load account from key‑manager
 	keyManager, err := backend.GetKeyPairByAddressAndChain(ctx, req, name, address, config.Chain.TON)

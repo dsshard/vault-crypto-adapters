@@ -15,6 +15,7 @@ var (
 )
 
 func DeriveAddress(pub *ecdsa.PublicKey) string {
+	//nolint:staticcheck
 	raw := elliptic.Marshal(btcec.S256(), pub.X, pub.Y)
 	// 2) Keccak256(X||Y) и берём последние 20 байт
 	h := sha3.NewLegacyKeccak256()
@@ -25,10 +26,7 @@ func DeriveAddress(pub *ecdsa.PublicKey) string {
 	// 4) Двойной SHA256 для контрольной суммы
 	cs1 := sha256.Sum256(versioned)
 	cs2 := sha256.Sum256(cs1[:])
-	// 5) Финальный байтовый массив = versioned || cs2[0:4]
-	full := append(versioned, cs2[0:4]...)
-	// 4) Base58Encode
-	return base58.Encode(full)
+	return base58.Encode(append(versioned, cs2[0:4]...))
 }
 
 // DecodeBase58 декодирует Base58Check‑строку, отбрасывает версию+checksum

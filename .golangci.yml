@@ -1,16 +1,23 @@
+version: 2
+
 linters-settings:
   govet:
     check-shadowing: false
+
   gocyclo:
     min-complexity: 25
+
   goconst:
     min-len: 2
     min-occurrences: 2
+
   errcheck:
     check-type-assertions: true
+
   gocritic:
     disabled-checks:
       - ifElseChain
+
   nakedret:
     max-func-lines: 15
 
@@ -19,22 +26,22 @@ run:
 
 linters:
   enable:
-    - gocritic
-    - stylecheck
-    - goimports
-    - gosec
-    - unconvert
-    - unparam
-    - gochecknoinits
-    - gosec
-    - nakedret
-    - whitespace
-    - gosimple
     - bodyclose
     - dogsled
+    - errcheck
+    - gochecknoinits
+    - gocritic
+    - gocyclo
+    - goconst
+    - gosec
+    - nakedret
     - rowserrcheck
+    - staticcheck
+    - unconvert
+    - unparam
+    - whitespace
+
   disable:
-    - maligned
-    - lll
     - dupl
     - gochecknoglobals
+    - lll

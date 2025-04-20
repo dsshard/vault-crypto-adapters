@@ -38,6 +38,9 @@ func PathSign() *framework.Path {
 
 func signHash(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	name, hashInput, address, err := backend.GetSignParamsFromData(data)
+	if err != nil {
+		return nil, fmt.Errorf("invalid request data: %w", err)
+	}
 
 	keyManager, err := backend.GetKeyPairByAddressAndChain(ctx, req, name, address, config.Chain.BTC)
 	if err != nil {
