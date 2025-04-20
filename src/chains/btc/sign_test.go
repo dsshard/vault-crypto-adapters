@@ -17,14 +17,18 @@ func TestBtcSignHash(t *testing.T) {
 	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/btc")
 	req.Storage = storage
 	req.Data = map[string]interface{}{"serviceName": "svc"}
-	_, err := b.HandleRequest(context.Background(), req)
+	account, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
 
 	// sign zero hash
 	zeroHash := hex.EncodeToString(make([]byte, 32))
 	req = logical.TestRequest(t, logical.CreateOperation, "key-managers/btc/svc/sign")
 	req.Storage = storage
-	req.Data = map[string]interface{}{"name": "svc", "hash": zeroHash}
+	req.Data = map[string]interface{}{
+		"name":    "svc",
+		"hash":    zeroHash,
+		"address": account.Data["address"],
+	}
 	resp, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
 	sig, _ := hex.DecodeString(resp.Data["signature"].(string))

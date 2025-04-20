@@ -16,7 +16,7 @@ func TestTrxSignHash(t *testing.T) {
 	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/trx")
 	req.Storage = storage
 	req.Data = map[string]interface{}{"serviceName": "svc"}
-	_, err := b.HandleRequest(context.Background(), req)
+	account, err := b.HandleRequest(context.Background(), req)
 	assert.NoError(t, err)
 
 	// Get address
@@ -30,8 +30,9 @@ func TestTrxSignHash(t *testing.T) {
 	req = logical.TestRequest(t, logical.CreateOperation, "key-managers/trx/svc/sign")
 	req.Storage = storage
 	req.Data = map[string]interface{}{
-		"name": "svc",
-		"hash": zeroHash,
+		"name":    "svc",
+		"hash":    zeroHash,
+		"address": account.Data["address"],
 	}
 	resp, err = b.HandleRequest(context.Background(), req)
 	assert.NoError(t, err)

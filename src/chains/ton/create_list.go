@@ -10,7 +10,7 @@ import (
 	"github.com/dsshard/vault-crypto-adapters/src/config"
 	"github.com/dsshard/vault-crypto-adapters/src/types"
 	"github.com/ethereum/go-ethereum/log"
-	"regexp"
+	"strings"
 
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
@@ -67,7 +67,7 @@ func tonCreateKeyManager(
 		return nil, fmt.Errorf("serviceName must be a non-empty string")
 	}
 	// optional import
-	seedHex, ok := data.Get("privateKey").(string)
+	privateKey, ok := data.Get("privateKey").(string)
 	if !ok {
 		return nil, fmt.Errorf("privateKey must be a hex string")
 	}
@@ -83,15 +83,14 @@ func tonCreateKeyManager(
 
 	// generate or import ed25519 key
 	var seed []byte
-	if seedHex != "" {
-		re := regexp.MustCompile(`^[0-9a-fA-F]{64}$`)
-		if re.FindString(seedHex) == "" {
-			return nil, fmt.Errorf("privateKey must be 32-byte hex")
+	if privateKey != "" {
+		// strip optional 0x
+		hexStr := strings.TrimPrefix(privateKey, "0x")
+		bs, err := hex.DecodeString(hexStr)
+		if err != nil || len(bs) != ed25519.SeedSize {
+			return nil, fmt.Errorf("invalid private key")
 		}
-		seed, err = hex.DecodeString(seedHex)
-		if err != nil {
-			return nil, fmt.Errorf("invalid privateKey hex: %w", err)
-		}
+		seed = bs
 	} else {
 		seed = make([]byte, ed25519.SeedSize)
 		if _, err := rand.Read(seed); err != nil {

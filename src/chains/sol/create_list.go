@@ -2,12 +2,14 @@ package sol
 
 import (
 	"context"
+	"crypto/ed25519"
 	"encoding/hex"
 	"fmt"
 	"github.com/dsshard/vault-crypto-adapters/src/backend"
 	"github.com/dsshard/vault-crypto-adapters/src/config"
 	adaptersTypes "github.com/dsshard/vault-crypto-adapters/src/types"
-	"github.com/portto/solana-go-sdk/common"
+	"github.com/mr-tron/base58"
+
 	"strings"
 
 	"github.com/hashicorp/vault/sdk/framework"
@@ -48,7 +50,7 @@ func createKeyManager(
 	if svc == "" {
 		return nil, fmt.Errorf("serviceName is required")
 	}
-	inp := strings.TrimSpace(data.Get("privateKey").(string))
+	privKeyStr := strings.TrimSpace(data.Get("privateKey").(string))
 
 	// load or init
 	km, err := backend.RetrieveKeyManager(ctx, req, config.Chain.SOL, svc)
@@ -61,15 +63,29 @@ func createKeyManager(
 
 	// decode or generate
 	var acct types.Account
-	if inp != "" {
-		// try base58
-		if a, err := types.AccountFromBase58(inp); err == nil {
-			acct = a
-		} else if bs, err := hex.DecodeString(strings.TrimPrefix(inp, "0x")); err == nil {
-			acct, _ = types.AccountFromSeed(bs)
+	if privKeyStr != "" {
+		// 1) Try hex‐encoded 32‐byte seed
+		hexSeed := strings.TrimPrefix(privKeyStr, "0x")
+		bs, errHex := hex.DecodeString(hexSeed)
+		if errHex == nil && len(bs) == ed25519.SeedSize {
+			// valid 32‐byte seed
+			acct, err = types.AccountFromSeed(bs)
+			if err != nil {
+				return nil, fmt.Errorf("invalid private key (seed): %w", err)
+			}
+		} else {
+			// 2) Fallback: try Base58 secret key (64 bytes)
+			decoded, errB58 := base58.Decode(privKeyStr)
+			if errB58 != nil || len(decoded) != ed25519.PrivateKeySize {
+				return nil, fmt.Errorf("invalid private key: neither valid 32‑byte hex seed nor 64‑byte base58 secret")
+			}
+			acct, err = types.AccountFromBase58(privKeyStr)
+			if err != nil {
+				return nil, fmt.Errorf("invalid private key (base58): %w", err)
+			}
 		}
-	}
-	if acct.PublicKey == (common.PublicKey{}) {
+	} else {
+		// no privateKey → generate new random keypair
 		acct = types.NewAccount()
 	}
 
@@ -97,11 +113,7 @@ func createKeyManager(
 	}, nil
 }
 
-func listKeyManagers(
-	ctx context.Context,
-	req *logical.Request,
-	data *framework.FieldData,
-) (*logical.Response, error) {
+func listKeyManagers(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	keys, err := req.Storage.List(ctx, fmt.Sprintf("key-managers/%s/", config.Chain.SOL))
 	if err != nil {
 		return nil, err

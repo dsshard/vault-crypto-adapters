@@ -2,17 +2,12 @@ package eth
 
 import (
 	"crypto/ecdsa"
-	"errors"
 	"github.com/ethereum/go-ethereum/common/math"
 	"math/big"
 	"regexp"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-)
-
-var (
-	errInvalidType = errors.New("invalid input type")
 )
 
 type Nonce struct {

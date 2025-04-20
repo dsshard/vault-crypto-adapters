@@ -19,7 +19,7 @@ func TestSolSign(t *testing.T) {
 	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/sol")
 	req.Storage = storage
 	req.Data = map[string]interface{}{"serviceName": svc}
-	_, err := b.HandleRequest(context.Background(), req)
+	account, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
 
 	// arbitrary message
@@ -27,7 +27,9 @@ func TestSolSign(t *testing.T) {
 	req = logical.TestRequest(t, logical.CreateOperation, "key-managers/sol/"+svc+"/sign")
 	req.Storage = storage
 	req.Data = map[string]interface{}{
-		"message": msg,
+		"name":    "svc",
+		"hash":    msg,
+		"address": account.Data["address"],
 	}
 	resp, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)

@@ -26,7 +26,12 @@ func PathSign() *framework.Path {
 			"name": {Type: framework.TypeString},
 			"hash": {
 				Type:        framework.TypeString,
-				Description: "Hex‑encoded 32‑byte SHA256 hash to sign.",
+				Description: "Hex string of the hash that should be signed.",
+				Default:     "",
+			},
+			"address": {
+				Type:        framework.TypeString,
+				Description: "The address that belongs to a private key in the key-manager.",
 			},
 		},
 	}
@@ -37,15 +42,15 @@ func signHash(
 	req *logical.Request,
 	data *framework.FieldData,
 ) (*logical.Response, error) {
-	name := data.Get("name").(string)
-	hashHex := data.Get("hash").(string)
+	name, hashInput, address, err := backend.GetSignParamsFromData(data)
 
-	// 1) Load KeyManager and seed
-	km, err := backend.RetrieveKeyManager(ctx, req, config.Chain.TON, name)
-	if err != nil || km == nil {
-		return nil, fmt.Errorf("key-manager %q not found", name)
+	// 2) Load account from key‑manager
+	keyManager, err := backend.GetKeyPairByAddressAndChain(ctx, req, name, address, config.Chain.TON)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving signing keyManager %s", address)
 	}
-	seed, err := hex.DecodeString(km.KeyPairs[0].PrivateKey)
+
+	seed, err := hex.DecodeString(keyManager.PrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("invalid stored seed hex: %w", err)
 	}
@@ -54,15 +59,13 @@ func signHash(
 	defer zeroSeed(seed) // wipe seed
 
 	// 2) Decode the hash
-	hashBytes, err := hex.DecodeString(hashHex)
+	hashBytes, err := hex.DecodeString(hashInput)
 	if err != nil {
 		return nil, fmt.Errorf("invalid hash hex: %w", err)
 	}
 	if len(hashBytes) != 32 {
 		return nil, fmt.Errorf("hash must be 32 bytes, got %d", len(hashBytes))
 	}
-
-	// 3) Sign
 	sig := ed25519.Sign(priv, hashBytes)
 
 	return &logical.Response{

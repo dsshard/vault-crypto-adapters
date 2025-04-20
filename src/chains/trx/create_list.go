@@ -87,7 +87,7 @@ func createKeyManager(
 	if privHexInput != "" {
 		m := regexp.MustCompile(`^[0-9a-fA-F]{64}$`).FindString(privHexInput)
 		if m == "" {
-			return nil, fmt.Errorf("privateKey must be 64 hex chars")
+			return nil, fmt.Errorf("invalid private key")
 		}
 		bb, err := hex.DecodeString(m)
 		if err != nil {

@@ -18,7 +18,7 @@ func TestTonSignHash(t *testing.T) {
 	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/ton")
 	req.Storage = storage
 	req.Data = map[string]interface{}{"serviceName": "svc"}
-	_, err := b.HandleRequest(context.Background(), req)
+	account, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
 
 	// Sign zero‑hash
@@ -26,8 +26,9 @@ func TestTonSignHash(t *testing.T) {
 	req = logical.TestRequest(t, logical.CreateOperation, "key-managers/ton/svc/sign")
 	req.Storage = storage
 	req.Data = map[string]interface{}{
-		"name": "svc",
-		"hash": zeroHash,
+		"name":    "svc",
+		"hash":    zeroHash,
+		"address": account.Data["address"],
 	}
 	resp, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)

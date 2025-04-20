@@ -24,7 +24,15 @@ func PathSign() *framework.Path {
 		HelpDescription: "POST name & hash (hex SHA256 rawData) → signature (hex r||s||v).",
 		Fields: map[string]*framework.FieldSchema{
 			"name": {Type: framework.TypeString},
-			"hash": {Type: framework.TypeString, Description: "Hex string of 32‑byte SHA256 hash"},
+			"hash": {
+				Type:        framework.TypeString,
+				Description: "Hex string of the hash that should be signed.",
+				Default:     "",
+			},
+			"address": {
+				Type:        framework.TypeString,
+				Description: "The address that belongs to a private key in the key-manager.",
+			},
 		},
 	}
 }
@@ -34,23 +42,15 @@ func sign(
 	req *logical.Request,
 	data *framework.FieldData,
 ) (*logical.Response, error) {
-	serviceName, ok := data.Get("name").(string)
-	if !ok {
-		return nil, errInvalidType
-	}
-	hashHex, ok := data.Get("hash").(string)
-	if !ok {
-		return nil, errInvalidType
-	}
+	name, hashInput, address, err := backend.GetSignParamsFromData(data)
 
-	// 1) Получаем приватный ключ из storage
-	km, err := backend.RetrieveKeyManager(ctx, req, config.Chain.TRX, serviceName)
-	if err != nil || km == nil {
-		return nil, fmt.Errorf("key-manager %s not found", serviceName)
+	// 2) Load account from key‑manager
+	keyManager, err := backend.GetKeyPairByAddressAndChain(ctx, req, name, address, config.Chain.TRX)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving signing keyManager %s", address)
 	}
-	privHex := km.KeyPairs[0].PrivateKey
+	privHex := keyManager.PrivateKey
 
-	// 2) Конвертим hex → *ecdsa.PrivateKey
 	privKey, err := crypto.HexToECDSA(privHex)
 	if err != nil {
 		return nil, fmt.Errorf("invalid private key hex: %w", err)
@@ -58,7 +58,7 @@ func sign(
 	defer ZeroKey(privKey)
 
 	// 3) Декодируем SHA256‑хеш (hex)
-	hashBytes, err := hex.DecodeString(hashHex)
+	hashBytes, err := hex.DecodeString(hashInput)
 	if err != nil {
 		return nil, fmt.Errorf("invalid hash hex: %w", err)
 	}

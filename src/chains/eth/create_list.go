@@ -50,18 +50,12 @@ func PathCreateAndList() *framework.Path {
 	}
 }
 
-func listKeyManagers(
-	ctx context.Context,
-	req *logical.Request,
-	data *framework.FieldData,
-) (*logical.Response, error) {
-	vals, err := req.Storage.List(ctx, fmt.Sprintf("key-managers/%s/", config.Chain.ETH))
+func listKeyManagers(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	keys, err := req.Storage.List(ctx, fmt.Sprintf("key-managers/%s/", config.Chain.ETH))
 	if err != nil {
-		log.Error("Failed to retrieve the list of keyManagers", "error", err)
 		return nil, err
 	}
-
-	return logical.ListResponse(vals), nil
+	return logical.ListResponse(keys), nil
 }
 
 func createKeyManager(
@@ -71,12 +65,12 @@ func createKeyManager(
 ) (*logical.Response, error) {
 	serviceInput, ok := data.Get("serviceName").(string)
 	if !ok {
-		return nil, errInvalidType
+		return nil, types.ErrInvalidType
 	}
 
 	keyInput, ok := data.Get("privateKey").(string)
 	if !ok {
-		return nil, errInvalidType
+		return nil, types.ErrInvalidType
 	}
 
 	keyManager, err := backend.RetrieveKeyManager(ctx, req, config.Chain.ETH, serviceInput)
@@ -99,13 +93,16 @@ func createKeyManager(
 		key := re.FindString(keyInput)
 		if key == "" {
 			log.Error("Input private key did not parse successfully", "privateKey", keyInput)
-			return nil, fmt.Errorf("privateKey must be a 32-byte hexidecimal string")
+			return nil, fmt.Errorf("invalid private key")
 		}
 
 		privateKey, err = crypto.HexToECDSA(key)
 		if err != nil {
 			log.Error("Error reconstructing private key from input hex", "error", err)
 			return nil, fmt.Errorf("error reconstructing private key from input hex, %w", err)
+		}
+		if privateKey == nil {
+			return nil, fmt.Errorf("invalid private key")
 		}
 	} else {
 		privateKey, _ = crypto.GenerateKey()

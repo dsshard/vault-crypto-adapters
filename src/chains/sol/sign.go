@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/dsshard/vault-crypto-adapters/src/backend"
 	"github.com/dsshard/vault-crypto-adapters/src/config"
+	"github.com/ethereum/go-ethereum/log"
 	"strings"
 
 	"github.com/hashicorp/vault/sdk/framework"
@@ -24,47 +25,42 @@ func PathSignSol() *framework.Path {
 		HelpSynopsis:    "Sign an arbitrary hex message with Solana ED25519 key",
 		HelpDescription: "POST name, message (hex string) → signature (hex)",
 		Fields: map[string]*framework.FieldSchema{
-			"name": {
+			"name": {Type: framework.TypeString},
+			"hash": {
 				Type:        framework.TypeString,
-				Description: "Key‑manager service name",
+				Description: "Hex string of the hash that should be signed.",
+				Default:     "",
 			},
-			"message": {
+			"address": {
 				Type:        framework.TypeString,
-				Description: "Hex‑encoded message to sign (e.g. transaction raw bytes)",
+				Description: "The address that belongs to a private key in the key-manager.",
 			},
 		},
 	}
 }
 
-// SignSol handles POST /key-managers/sol/{name}/sign
 func sign(
 	ctx context.Context,
 	req *logical.Request,
 	data *framework.FieldData,
 ) (*logical.Response, error) {
-	// 1) Parse inputs
-	svc := data.Get("name").(string)
-	msgHex, ok := data.Get("message").(string)
-	if !ok {
-		return nil, fmt.Errorf("invalid message")
-	}
-	msgHex = strings.TrimPrefix(msgHex, "0x")
-	msgBytes, err := hex.DecodeString(msgHex)
+	name, hashInput, address, err := backend.GetSignParamsFromData(data)
+
+	hashInput = strings.TrimPrefix(hashInput, "0x")
+	msgBytes, err := hex.DecodeString(hashInput)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode hex message: %w", err)
 	}
 
 	// 2) Load account from key‑manager
-	km, err := backend.RetrieveKeyManager(ctx, req, config.Chain.SOL, svc)
+	keyManager, err := backend.GetKeyPairByAddressAndChain(ctx, req, name, address, config.Chain.SOL)
 	if err != nil {
-		return nil, err
-	}
-	if km == nil || len(km.KeyPairs) == 0 {
-		return nil, fmt.Errorf("no key‑manager for service %q", svc)
+		log.Error("Failed to retrieve the signing keyManager",
+			"address", address, "error", err)
+		return nil, fmt.Errorf("error retrieving signing keyManager %s", address)
 	}
 
-	rawPriv := km.KeyPairs[0].PrivateKey
-	seed, err := hex.DecodeString(rawPriv)
+	seed, err := hex.DecodeString(keyManager.PrivateKey)
 	if err != nil {
 		return nil, fmt.Errorf("invalid hex seed: %w", err)
 	}

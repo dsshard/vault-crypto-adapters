@@ -2,7 +2,6 @@ package eth
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"github.com/dsshard/vault-crypto-adapters/src/backend"
 	"github.com/dsshard/vault-crypto-adapters/src/config"
@@ -48,58 +47,19 @@ func sign(
 	req *logical.Request,
 	data *framework.FieldData,
 ) (*logical.Response, error) {
-	serviceNameInput, ok := data.Get("name").(string)
-	if !ok {
-		return nil, errInvalidType
-	}
-
-	hashInput, ok := data.Get("hash").(string)
-	if !ok {
-		return nil, errInvalidType
-	}
-
-	address, ok := data.Get("address").(string)
-	if !ok {
-		return nil, errInvalidType
-	}
-
-	keyManager, err := backend.RetrieveKeyManager(ctx, req, config.Chain.ETH, serviceNameInput)
+	name, hashInput, address, err := backend.GetSignParamsFromData(data)
 	if err != nil {
-		log.Error("Failed to retrieve the signing keyManager",
-			"service_name", serviceNameInput, "error", err)
-		return nil, fmt.Errorf("error retrieving signing keyManager %s", serviceNameInput)
+		// Если что‑то не передано или неправильно, возвращаем ошибку пользователю
+		return nil, fmt.Errorf("invalid request data: %w", err)
 	}
 
-	if keyManager == nil {
-		return nil, fmt.Errorf("signing keyManager %s does not exist", serviceNameInput)
-	}
-
-	if len(keyManager.KeyPairs) == 0 {
-		return nil, fmt.Errorf("signing keyManager %s does not have a key pair", serviceNameInput)
-	}
-
-	var privateKeyStr string
-	for _, keyPairs := range keyManager.KeyPairs {
-		if keyPairs.Address == address {
-			privateKeyStr = keyPairs.PrivateKey
-			break
-		}
-	}
-
-	if privateKeyStr == "" {
-		return nil, errors.New("no private key for the input address")
-	}
-
-	privateKey, err := crypto.HexToECDSA(privateKeyStr)
+	keyManager, err := backend.GetKeyPairByAddressAndChain(ctx, req, name, address, config.Chain.ETH)
 	if err != nil {
-		log.Error("Error reconstructing private key from retrieved hex", "error", err)
-		return nil, fmt.Errorf("error reconstructing private key from retrieved hex")
+		return nil, fmt.Errorf("error retrieving signing keyManager %s", address)
 	}
+
+	privateKey, err := crypto.HexToECDSA(keyManager.PrivateKey)
 	defer ZeroKey(privateKey)
-
-	if err != nil {
-		return nil, err
-	}
 
 	sig, err := crypto.Sign(common.HexToHash(hashInput).Bytes(), privateKey)
 	if err != nil {

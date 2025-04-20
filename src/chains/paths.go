@@ -16,29 +16,21 @@ func Paths() []*framework.Path {
 		PathReadAndDelete(config.Chain.ETH),
 		PathReadAndDelete(config.Chain.BTC),
 		PathReadAndDelete(config.Chain.TON),
+		PathReadAndDelete(config.Chain.SOL),
 
 		btc.PathCreateAndList(),
 		btc.PathSign(),
-		btc.PathTransfer(),
 
 		eth.PathCreateAndList(),
 		eth.PathSign(),
-		eth.PathTransfer(),
-		eth.PathTransferERC20(),
 
 		ton.PathCreateAndList(),
 		ton.PathSign(),
-		ton.PathTransfer(),
-		ton.PathTransferJetton(),
 
 		trx.PathCreateAndList(),
 		trx.PathSign(),
-		trx.PathTransferTx(),
-		trx.PathTRC20Transfer(),
 
-		sol.PathTransferToken(),
 		sol.PathCreateAndList(),
 		sol.PathSignSol(),
-		sol.PathTransferNativeSol(),
 	}
 }

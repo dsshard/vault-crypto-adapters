@@ -9,14 +9,12 @@ require (
 	github.com/btcsuite/btcd/btcutil v1.1.5
 	github.com/btcsuite/btcutil v0.0.0-20190425235716-9e5f4b9a998d
 	github.com/ethereum/go-ethereum v1.15.8
-	github.com/fbsobreira/gotron-sdk v0.0.0-20250403083053-2943ce8c759b
 	github.com/hashicorp/vault/api v1.16.0
 	github.com/hashicorp/vault/sdk v0.15.2
 	github.com/portto/solana-go-sdk v1.24.0
 	github.com/stretchr/testify v1.10.0
 	github.com/tonkeeper/tongo v1.16.2
 	golang.org/x/crypto v0.36.0
-	google.golang.org/protobuf v1.36.6
 )
 
 require (
@@ -33,8 +31,8 @@ require (
 	github.com/crate-crypto/go-ipa v0.0.0-20240724233137-53bbb0ceb27a // indirect
 	github.com/crate-crypto/go-kzg-4844 v1.1.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/decred/dcrd/crypto/blake256 v1.1.0 // indirect
-	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0 // indirect
+	github.com/decred/dcrd/crypto/blake256 v1.0.0 // indirect
+	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.1 // indirect
 	github.com/distribution/reference v0.6.0 // indirect
 	github.com/docker/docker v27.2.1+incompatible // indirect
 	github.com/docker/go-connections v0.5.0 // indirect
@@ -42,7 +40,7 @@ require (
 	github.com/ethereum/c-kzg-4844 v1.0.0 // indirect
 	github.com/ethereum/go-verkle v0.2.2 // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
-	github.com/fatih/color v1.18.0 // indirect
+	github.com/fatih/color v1.17.0 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/go-jose/go-jose/v4 v4.0.4 // indirect
 	github.com/go-logr/logr v1.4.2 // indirect
@@ -76,7 +74,7 @@ require (
 	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/holiman/uint256 v1.3.2 // indirect
 	github.com/joshlf/go-acl v0.0.0-20200411065538-eae00ae38531 // indirect
-	github.com/mattn/go-colorable v0.1.14 // indirect
+	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
@@ -98,20 +96,20 @@ require (
 	github.com/sasha-s/go-deadlock v0.3.5 // indirect
 	github.com/snksoft/crc v1.1.0 // indirect
 	github.com/supranational/blst v0.3.14 // indirect
-	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.54.0 // indirect
-	go.opentelemetry.io/otel v1.34.0 // indirect
-	go.opentelemetry.io/otel/metric v1.34.0 // indirect
-	go.opentelemetry.io/otel/trace v1.34.0 // indirect
+	go.opentelemetry.io/otel v1.31.0 // indirect
+	go.opentelemetry.io/otel/metric v1.31.0 // indirect
+	go.opentelemetry.io/otel/trace v1.31.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/exp v0.0.0-20240506185415-9bf2ced13842 // indirect
-	golang.org/x/net v0.38.0 // indirect
+	golang.org/x/net v0.36.0 // indirect
 	golang.org/x/sync v0.12.0 // indirect
 	golang.org/x/sys v0.31.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/time v0.9.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20250227231956-55c901821b1e // indirect
-	google.golang.org/grpc v1.71.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20241209162323-e6fa225c2576 // indirect
+	google.golang.org/grpc v1.69.4 // indirect
+	google.golang.org/protobuf v1.36.3 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
 )

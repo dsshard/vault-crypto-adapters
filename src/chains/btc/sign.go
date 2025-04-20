@@ -23,23 +23,32 @@ func PathSign() *framework.Path {
 		HelpDescription: "POST name, hash(hex) → signature(hex).",
 		Fields: map[string]*framework.FieldSchema{
 			"name": {Type: framework.TypeString},
-			"hash": {Type: framework.TypeString},
+			"hash": {
+				Type:        framework.TypeString,
+				Description: "Hex string of the hash that should be signed.",
+				Default:     "",
+			},
+			"address": {
+				Type:        framework.TypeString,
+				Description: "The address that belongs to a private key in the key-manager.",
+			},
 		},
 	}
 }
 
 func signHash(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-	svc := data.Get("name").(string)
-	hhex := data.Get("hash").(string)
-	km, err := backend.RetrieveKeyManager(ctx, req, config.Chain.BTC, svc)
-	if err != nil || km == nil {
-		return nil, fmt.Errorf("not found")
+	name, hashInput, address, err := backend.GetSignParamsFromData(data)
+
+	keyManager, err := backend.GetKeyPairByAddressAndChain(ctx, req, name, address, config.Chain.BTC)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving signing keyManager %s", address)
 	}
-	hash, err := hex.DecodeString(hhex)
+
+	hash, err := hex.DecodeString(hashInput)
 	if err != nil || len(hash) != 32 {
 		return nil, fmt.Errorf("invalid hash")
 	}
-	privBytes, _ := hex.DecodeString(km.KeyPairs[0].PrivateKey)
+	privBytes, _ := hex.DecodeString(keyManager.PrivateKey)
 	priv, _ := btcec.PrivKeyFromBytes(privBytes)
 	sig, err := schnorr.Sign(priv, hash)
 	if err != nil {
