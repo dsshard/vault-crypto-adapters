@@ -36,3 +36,4 @@ _*
 .coverage
 .report
 
+.build/
