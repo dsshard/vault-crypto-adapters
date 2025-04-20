@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/dsshard/vault-crypto-adapters/src/common"
+	"github.com/dsshard/vault-crypto-adapters/internal/common"
 	"log"
 	"os"
 
