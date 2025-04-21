@@ -17,3 +17,13 @@ var Chain = struct {
 	SOL: "sol",
 	XRP: "xrp",
 }
+
+// AllChains — упорядоченный список всех поддерживаемых ChainType
+var AllChains = []ChainType{
+	Chain.BTC,
+	Chain.ETH,
+	Chain.TON,
+	Chain.TRX,
+	Chain.SOL,
+	Chain.XRP,
+}

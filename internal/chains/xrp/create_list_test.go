@@ -2,7 +2,6 @@ package xrp_test
 
 import (
 	"context"
-	"log"
 	"regexp"
 	"testing"
 
@@ -26,7 +25,6 @@ func TestXrpCreateAndListKeyManagers(t *testing.T) {
 
 	addr := resp.Data["address"].(string)
 
-	log.Print(addr)
 	// must be a 0x-prefixed 40‑hex‑char address
 	assert.Equal(t, "rh8Xyr355XDm5PCMzD1qWcjd5b5GqLpdqm", addr)
 

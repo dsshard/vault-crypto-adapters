@@ -3,7 +3,8 @@ package backend
 import "github.com/hashicorp/vault/sdk/framework"
 
 var DefaultCrudOperations = map[string]*framework.FieldSchema{
-	"name": {Type: framework.TypeString},
+	"name":    {Type: framework.TypeString},
+	"address": {Type: framework.TypeString},
 	"private_key": {
 		Type:        framework.TypeString,
 		Description: "(Optional, default random key) Hex string for the private key",
@@ -23,6 +24,7 @@ var DefaultDeleteOperations = map[string]*framework.FieldSchema{
 		Description: "(Optional, default random key) Hex string for the private key",
 	},
 }
+var DefaultListOperations = map[string]*framework.FieldSchema{}
 var DefaultSignOperation = map[string]*framework.FieldSchema{
 	"name": {Type: framework.TypeString},
 	"hash": {

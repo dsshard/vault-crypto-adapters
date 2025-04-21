@@ -2,40 +2,35 @@ package chains
 
 import (
 	"github.com/dsshard/vault-crypto-adapters/internal/backend"
-	"github.com/dsshard/vault-crypto-adapters/internal/chains/btc"
-	"github.com/dsshard/vault-crypto-adapters/internal/chains/eth"
-	"github.com/dsshard/vault-crypto-adapters/internal/chains/sol"
-	"github.com/dsshard/vault-crypto-adapters/internal/chains/ton"
-	"github.com/dsshard/vault-crypto-adapters/internal/chains/trx"
-	"github.com/dsshard/vault-crypto-adapters/internal/chains/xrp"
+	_ "github.com/dsshard/vault-crypto-adapters/internal/chains/btc"
+	_ "github.com/dsshard/vault-crypto-adapters/internal/chains/eth"
+	_ "github.com/dsshard/vault-crypto-adapters/internal/chains/sol"
+	_ "github.com/dsshard/vault-crypto-adapters/internal/chains/ton"
+	_ "github.com/dsshard/vault-crypto-adapters/internal/chains/trx"
+	_ "github.com/dsshard/vault-crypto-adapters/internal/chains/xrp"
 	"github.com/dsshard/vault-crypto-adapters/internal/config"
 	"github.com/hashicorp/vault/sdk/framework"
+	"log"
 )
 
 func Paths() []*framework.Path {
-	return []*framework.Path{
-		backend.PathCrudDelete(config.Chain.BTC),
-		backend.PathCrudDelete(config.Chain.ETH),
-		backend.PathCrudDelete(config.Chain.TRX),
-		backend.PathCrudDelete(config.Chain.SOL),
-		backend.PathCrudDelete(config.Chain.TON),
+	var paths []*framework.Path
 
-		btc.PathCrud(),
-		btc.PathSign(),
-
-		eth.PathCrud(),
-		eth.PathSign(),
-
-		ton.PathCrud(),
-		ton.PathSign(),
-
-		trx.PathCrud(),
-		trx.PathSign(),
-
-		sol.PathCrud(),
-		sol.PathSign(),
-
-		xrp.PathCrud(),
-		xrp.PathSign(),
+	log.Print(config.AllChains)
+	for _, chain := range config.AllChains {
+		paths = append(paths, backend.PathCrudList(chain))
 	}
+	// подхватываем все зарегистрированные coin-пакеты
+	for _, chain := range config.AllChains {
+		// Затем, если для этой цепочки есть специфичные CRUD/Sign
+		if ep, ok := backend.All()[chain]; ok {
+			paths = append(paths,
+				ep.Crud(),
+				ep.Sign(),
+			)
+		}
+
+	}
+
+	return paths
 }

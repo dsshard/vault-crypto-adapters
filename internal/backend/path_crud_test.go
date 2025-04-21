@@ -12,11 +12,11 @@ import (
 
 func TestDeleteKeyManager_UsingHandlers(t *testing.T) {
 	b, storage := test.NewTestBackend(t)
-	pathDelete := "key-managers/btc/svc/delete"
+	pathDelete := "key-managers/btc/svc"
 	pathCreate := "key-managers/btc/svc"
 
 	// 1) Create first key with specific private key
-	req1 := logical.TestRequest(t, logical.UpdateOperation, pathCreate)
+	req1 := logical.TestRequest(t, logical.UpdateOperation, "key-managers/btc/svc")
 	req1.Storage = storage
 	req1.Data = map[string]interface{}{"private_key": "KzQJ9vR4JeoJicejXmdvjcoDmZHa665diNxt17o3KRw3Hvix5CA5"}
 	resp1, err := b.HandleRequest(context.Background(), req1)
@@ -71,4 +71,29 @@ func TestDeleteKeyManager_UsingHandlers(t *testing.T) {
 	respFinal, err := b.HandleRequest(context.Background(), reqFinal)
 	require.NoError(t, err)
 	assert.Nil(t, respFinal.Data)
+}
+
+func TestListKeyManager_CheckList(t *testing.T) {
+	b, storage := test.NewTestBackend(t)
+	pathList := "key-managers/btc"
+	pathCreate1 := "key-managers/btc/test1"
+	pathCreate2 := "key-managers/btc/test2"
+
+	// 1) Create first key with specific private key
+	req1 := logical.TestRequest(t, logical.UpdateOperation, pathCreate1)
+	req1.Storage = storage
+	b.HandleRequest(context.Background(), req1)
+
+	// 1) Create first key with specific private key
+	req2 := logical.TestRequest(t, logical.UpdateOperation, pathCreate2)
+	req2.Storage = storage
+	b.HandleRequest(context.Background(), req2)
+
+	// 1) Create first key with specific private key
+	req1111 := logical.TestRequest(t, logical.ListOperation, pathList)
+	req1111.Storage = storage
+	resp1111, err := b.HandleRequest(context.Background(), req1111)
+	require.NoError(t, err)
+
+	require.Len(t, resp1111.Data["keys"], 2)
 }

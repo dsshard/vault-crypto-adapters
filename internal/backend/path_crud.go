@@ -11,17 +11,17 @@ import (
 	"log"
 )
 
-func PathCrudDelete(chain config.ChainType) *framework.Path {
+func PathCrudList(chain config.ChainType) *framework.Path {
 	return &framework.Path{
-		Pattern: config.CreatePathCrudDelete(chain),
+		Pattern: config.CreatePathCrudList(chain),
 		Operations: map[logical.Operation]framework.OperationHandler{
-			logical.DeleteOperation: &framework.PathOperation{
-				Callback: WrapperDeleteKeyManager(chain),
+			logical.ListOperation: &framework.PathOperation{
+				Callback: WrapperListKeyManager(chain),
 			},
 		},
 		HelpSynopsis:    DefaultHelpHelpSynopsisCreateList,
 		HelpDescription: DefaultHelpDescriptionCreateList,
-		Fields:          DefaultDeleteOperations,
+		Fields:          DefaultListOperations,
 	}
 }
 
@@ -115,7 +115,6 @@ func deleteKeyManager(
 		}
 	} else {
 		keyManager.KeyPairs = filtered
-
 		// Otherwise update with remaining path pairs
 		entry, _ := logical.StorageEntryJSON(path, keyManager)
 		if err := req.Storage.Put(ctx, entry); err != nil {
@@ -124,4 +123,22 @@ func deleteKeyManager(
 	}
 
 	return nil, nil
+}
+
+func WrapperListKeyManager(chain config.ChainType) func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	return func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+		return listKeyManagers(chain, ctx, req)
+	}
+}
+
+func listKeyManagers(
+	chain config.ChainType,
+	ctx context.Context,
+	req *logical.Request,
+) (*logical.Response, error) {
+	names, err := req.Storage.List(ctx, fmt.Sprintf("key-managers/%s/", chain))
+	if err != nil {
+		return nil, err
+	}
+	return logical.ListResponse(names), nil
 }

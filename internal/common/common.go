@@ -19,8 +19,9 @@ func Factory(ctx context.Context, conf *logical.BackendConfig) (logical.Backend,
 func newBackend() *backend.Backend {
 	b := &backend.Backend{}
 	b.Backend = &framework.Backend{
-		Help:  "Vault Bitcoin Signer plugin: key‑managers, sign, build dummy tx",
-		Paths: framework.PathAppend(chains.Paths()),
+		Help:           "Vault Bitcoin Signer plugin: key‑managers, sign, build dummy tx",
+		Paths:          framework.PathAppend(chains.Paths()),
+		RunningVersion: "1.0.0",
 		PathsSpecial: &logical.Paths{
 			SealWrapStorage: []string{"key-managers/"},
 		},
