@@ -17,7 +17,7 @@ func PathSign() *framework.Path {
 		Pattern:        config.CreatePathSign(config.Chain.ETH),
 		ExistenceCheck: backend.PathExistenceCheck,
 		Operations: map[logical.Operation]framework.OperationHandler{
-			logical.CreateOperation: &framework.PathOperation{
+			logical.UpdateOperation: &framework.PathOperation{
 				Callback: sign,
 			},
 		},

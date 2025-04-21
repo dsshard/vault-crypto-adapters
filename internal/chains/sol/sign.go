@@ -19,7 +19,7 @@ func PathSign() *framework.Path {
 		Pattern:        config.CreatePathSign(config.Chain.SOL),
 		ExistenceCheck: backend.PathExistenceCheck,
 		Operations: map[logical.Operation]framework.OperationHandler{
-			logical.CreateOperation: &framework.PathOperation{Callback: sign},
+			logical.UpdateOperation: &framework.PathOperation{Callback: sign},
 		},
 		HelpSynopsis:    "Sign an arbitrary hex message with Solana ED25519 key",
 		HelpDescription: "POST name, message (hex string) → signature (hex)",

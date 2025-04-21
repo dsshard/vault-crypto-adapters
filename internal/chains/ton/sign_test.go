@@ -22,10 +22,9 @@ func TestTonSignHash(t *testing.T) {
 
 	// Sign zero‑hash
 	zeroHash := hex.EncodeToString(make([]byte, 32))
-	req = logical.TestRequest(t, logical.CreateOperation, "key-managers/ton/svc/sign")
+	req = logical.TestRequest(t, logical.UpdateOperation, "key-managers/ton/svc/sign")
 	req.Storage = storage
 	req.Data = map[string]interface{}{
-		"name":    "svc",
 		"hash":    zeroHash,
 		"address": account.Data["address"],
 	}

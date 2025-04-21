@@ -20,10 +20,9 @@ func TestEthSignHash(t *testing.T) {
 
 	// sign zero hash
 	zeroHash := hex.EncodeToString(make([]byte, 32))
-	req = logical.TestRequest(t, logical.CreateOperation, "key-managers/eth/svc/sign")
+	req = logical.TestRequest(t, logical.UpdateOperation, "key-managers/eth/svc/sign")
 	req.Storage = storage
 	req.Data = map[string]interface{}{
-		"name":    "svc",
 		"hash":    zeroHash,
 		"address": account.Data["address"],
 	}

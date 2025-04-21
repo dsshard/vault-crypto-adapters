@@ -3,6 +3,7 @@ package chains
 import (
 	"github.com/dsshard/vault-crypto-adapters/internal/backend"
 	_ "github.com/dsshard/vault-crypto-adapters/internal/chains/btc"
+	_ "github.com/dsshard/vault-crypto-adapters/internal/chains/doge"
 	_ "github.com/dsshard/vault-crypto-adapters/internal/chains/eth"
 	_ "github.com/dsshard/vault-crypto-adapters/internal/chains/sol"
 	_ "github.com/dsshard/vault-crypto-adapters/internal/chains/ton"

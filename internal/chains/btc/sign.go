@@ -17,7 +17,7 @@ func PathSign() *framework.Path {
 		Pattern:        config.CreatePathSign(config.Chain.BTC),
 		ExistenceCheck: backend.PathExistenceCheck,
 		Operations: map[logical.Operation]framework.OperationHandler{
-			logical.CreateOperation: &framework.PathOperation{Callback: signHash},
+			logical.UpdateOperation: &framework.PathOperation{Callback: signHash},
 		},
 		HelpSynopsis:    "Sign a 32‑byte hash with secp256k1 (schnorr)",
 		HelpDescription: "POST name, hash(hex) → signature(hex).",
