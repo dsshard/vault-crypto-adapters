@@ -97,3 +97,21 @@ func TestListKeyManager_CheckList(t *testing.T) {
 
 	require.Len(t, resp1111.Data["keys"], 2)
 }
+
+func TestListKeyManager_CheckList_Eth(t *testing.T) {
+	b, storage := test.NewTestBackend(t)
+	pathList := "key-managers/eth"
+	pathCreate := "key-managers/eth/testeth"
+
+	// Создаём eth/testeth
+	reqCreate := logical.TestRequest(t, logical.UpdateOperation, pathCreate)
+	reqCreate.Storage = storage
+	b.HandleRequest(context.Background(), reqCreate)
+
+	// Листим eth
+	reqList := logical.TestRequest(t, logical.ListOperation, pathList)
+	reqList.Storage = storage
+	resp, err := b.HandleRequest(context.Background(), reqList)
+	require.NoError(t, err)
+	require.Len(t, resp.Data["keys"], 1)
+}
