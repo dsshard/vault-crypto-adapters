@@ -26,9 +26,6 @@ func PathCrud() *framework.Path {
 			logical.ReadOperation: &framework.PathOperation{
 				Callback: backend.WrapperReadKeyManager(config.Chain.BTC),
 			},
-			logical.DeleteOperation: &framework.PathOperation{
-				Callback: backend.WrapperDeleteKeyManager(config.Chain.BTC),
-			},
 		},
 		HelpSynopsis:    backend.DefaultHelpHelpSynopsisCreateList,
 		HelpDescription: backend.DefaultHelpDescriptionCreateList,

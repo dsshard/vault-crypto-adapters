@@ -15,6 +15,14 @@ var DefaultCrudOperations = map[string]*framework.FieldSchema{
 		Default:     "",
 	},
 }
+
+var DefaultDeleteOperations = map[string]*framework.FieldSchema{
+	"name": {Type: framework.TypeString},
+	"address": {
+		Type:        framework.TypeString,
+		Description: "(Optional, default random key) Hex string for the private key",
+	},
+}
 var DefaultSignOperation = map[string]*framework.FieldSchema{
 	"name": {Type: framework.TypeString},
 	"hash": {

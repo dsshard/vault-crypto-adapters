@@ -5,10 +5,25 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dsshard/vault-crypto-adapters/internal/config"
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/dsshard/vault-crypto-adapters/internal/types"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
+	"log"
 )
+
+func PathCrudDelete(chain config.ChainType) *framework.Path {
+	return &framework.Path{
+		Pattern: config.CreatePathCrudDelete(chain),
+		Operations: map[logical.Operation]framework.OperationHandler{
+			logical.DeleteOperation: &framework.PathOperation{
+				Callback: WrapperDeleteKeyManager(chain),
+			},
+		},
+		HelpSynopsis:    DefaultHelpHelpSynopsisCreateList,
+		HelpDescription: DefaultHelpDescriptionCreateList,
+		Fields:          DefaultDeleteOperations,
+	}
+}
 
 func WrapperReadKeyManager(chain config.ChainType) func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	return func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
@@ -26,13 +41,15 @@ func readKeyManager(
 		return nil, errors.New("invalid input type")
 	}
 
-	log.Info("Retrieving key manager for name", "name", serviceName)
+	log.Print("Retrieving key manager for name", serviceName)
 	keyManager, err := RetrieveKeyManager(ctx, req, chain, serviceName)
 	if err != nil {
 		return nil, err
 	}
 	if keyManager == nil {
-		return nil, fmt.Errorf("keyManager does not exist")
+		return &logical.Response{
+			Data: nil,
+		}, nil
 	}
 
 	// Собираем пары address + public_key
@@ -64,26 +81,47 @@ func deleteKeyManager(
 	req *logical.Request,
 	data *framework.FieldData,
 ) (*logical.Response, error) {
+	// Validate inputs
 	serviceName, ok := data.Get("name").(string)
-	if !ok {
-		return nil, errors.New("invalid input type")
+	if !ok || serviceName == "" {
+		return nil, errors.New("invalid input: name must be a non-empty string")
+	}
+	address, ok := data.Get("address").(string)
+	if !ok || address == "" {
+		return nil, errors.New("invalid input: address must be a non-empty string")
 	}
 
-	policy, err := RetrieveKeyManager(ctx, req, chain, serviceName)
+	// Storage path for this service's path manager
+	path := fmt.Sprintf("key-managers/%s/%s", chain, serviceName)
+
+	// Fetch existing entry
+	keyManager, err := RetrieveKeyManager(ctx, req, chain, serviceName)
 	if err != nil {
-		log.Error("Failed to retrieve the key-manager by name",
-			"name", serviceName, "error", err)
-		return nil, err
+		return nil, fmt.Errorf("error retrieving signing keyManager %s", serviceName)
 	}
 
-	if policy == nil {
-		return nil, nil
+	// Filter out the path pair matching the address
+	filtered := make([]*types.KeyPair, 0, len(keyManager.KeyPairs))
+	for _, kp := range keyManager.KeyPairs {
+		if kp.Address != address {
+			filtered = append(filtered, kp)
+		}
 	}
 
-	if err = req.Storage.Delete(ctx, fmt.Sprintf("key-managers/%s/%s", chain, policy.ServiceName)); err != nil {
-		log.Error("Failed to delete the key-manager from storage",
-			"service_name", serviceName, "error", err)
-		return nil, err
+	// If no path pairs remain, delete the entire record
+	if len(filtered) == 0 {
+		if err := req.Storage.Delete(ctx, path); err != nil {
+			return nil, fmt.Errorf("failed to delete path-manager: %w", err)
+		}
+	} else {
+		keyManager.KeyPairs = filtered
+
+		// Otherwise update with remaining path pairs
+		entry, _ := logical.StorageEntryJSON(path, keyManager)
+		if err := req.Storage.Put(ctx, entry); err != nil {
+			return nil, err
+		}
 	}
+
 	return nil, nil
 }
