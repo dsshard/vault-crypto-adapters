@@ -11,16 +11,11 @@ import (
 	_ "github.com/dsshard/vault-crypto-adapters/internal/chains/xrp"
 	"github.com/dsshard/vault-crypto-adapters/internal/config"
 	"github.com/hashicorp/vault/sdk/framework"
-	"log"
 )
 
 func Paths() []*framework.Path {
 	var paths []*framework.Path
 
-	log.Print(config.AllChains)
-	for _, chain := range config.AllChains {
-		paths = append(paths, backend.PathCrudList(chain))
-	}
 	// подхватываем все зарегистрированные coin-пакеты
 	for _, chain := range config.AllChains {
 		// Затем, если для этой цепочки есть специфичные CRUD/Sign
@@ -30,7 +25,10 @@ func Paths() []*framework.Path {
 				ep.Sign(),
 			)
 		}
+	}
 
+	for _, chain := range config.AllChains {
+		paths = append(paths, backend.PathCrudList(chain))
 	}
 
 	return paths

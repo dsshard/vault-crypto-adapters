@@ -17,7 +17,6 @@ var DefaultCrudOperations = map[string]*framework.FieldSchema{
 	},
 }
 
-var DefaultListOperations = map[string]*framework.FieldSchema{}
 var DefaultSignOperation = map[string]*framework.FieldSchema{
 	"name": {Type: framework.TypeString},
 	"hash": {

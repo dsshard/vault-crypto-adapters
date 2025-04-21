@@ -21,7 +21,6 @@ func PathCrudList(chain config.ChainType) *framework.Path {
 		},
 		HelpSynopsis:    DefaultHelpHelpSynopsisCreateList,
 		HelpDescription: DefaultHelpDescriptionCreateList,
-		Fields:          DefaultListOperations,
 	}
 }
 
