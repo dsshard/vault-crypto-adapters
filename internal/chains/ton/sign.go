@@ -13,8 +13,7 @@ import (
 
 func PathSign() *framework.Path {
 	return &framework.Path{
-		Pattern:        config.CreatePathSign(config.Chain.TON),
-		ExistenceCheck: backend.PathExistenceCheck,
+		Pattern: config.CreatePathSign(config.Chain.TON),
 		Operations: map[logical.Operation]framework.OperationHandler{
 			logical.UpdateOperation: &framework.PathOperation{
 				Callback: signHash,

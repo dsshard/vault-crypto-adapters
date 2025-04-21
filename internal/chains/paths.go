@@ -33,5 +33,8 @@ func Paths() []*framework.Path {
 
 	}
 
+	for _, p := range paths {
+		log.Printf("[DEBUG] registering path pattern: %q", p.Pattern)
+	}
 	return paths
 }

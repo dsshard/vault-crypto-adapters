@@ -14,8 +14,7 @@ import (
 
 func PathSign() *framework.Path {
 	return &framework.Path{
-		Pattern:        config.CreatePathSign(config.Chain.DOGE),
-		ExistenceCheck: backend.PathExistenceCheck,
+		Pattern: config.CreatePathSign(config.Chain.DOGE),
 		Operations: map[logical.Operation]framework.OperationHandler{
 			logical.UpdateOperation: &framework.PathOperation{Callback: signHash},
 		},
