@@ -21,7 +21,7 @@ func newBackend() *backend.Backend {
 	b.Backend = &framework.Backend{
 		Help:           "Vault Bitcoin Signer plugin: key‑managers, sign, build dummy tx",
 		Paths:          framework.PathAppend(chains.Paths()),
-		RunningVersion: "v1.0.0",
+		RunningVersion: "v1.0.1",
 		PathsSpecial: &logical.Paths{
 			SealWrapStorage: []string{"key-managers/"},
 		},
