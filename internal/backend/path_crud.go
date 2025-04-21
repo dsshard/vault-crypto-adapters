@@ -13,7 +13,7 @@ import (
 
 func PathCrudList(chain config.ChainType) *framework.Path {
 	return &framework.Path{
-		Pattern: config.CreatePathCrudList(chain),
+		Pattern: fmt.Sprintf("%s/?", config.CreatePathCrudList(chain)),
 		Operations: map[logical.Operation]framework.OperationHandler{
 			logical.ListOperation: &framework.PathOperation{
 				Callback: WrapperListKeyManager(chain),
