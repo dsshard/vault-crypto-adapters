@@ -15,7 +15,7 @@ func TestTrxCreateAndListKeyManagers(t *testing.T) {
 	b, storage := test.NewTestBackend(t)
 
 	// 1) Import a specific 32‑byte secp256k1 private key (64 hex chars, no 0x)
-	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/trx/svc")
+	req := logical.TestRequest(t, logical.CreateOperation, "key-managers/trx/svc")
 	req.Storage = storage
 	req.Data = map[string]interface{}{
 		"private_key": "4c0883a69102937a9280f1222f7c9b6645e1a3c7bf2e5b4cd0bd58d7f9f5d9b7",
@@ -28,7 +28,7 @@ func TestTrxCreateAndListKeyManagers(t *testing.T) {
 	assert.Equal(t, "TPAYG9ifQaU2T8zNtVqzyzgzKrvawPCwpd", addr)
 
 	// 2) Generate another key (empty privateKey → new random)
-	req = logical.TestRequest(t, logical.UpdateOperation, "key-managers/trx/svc")
+	req = logical.TestRequest(t, logical.CreateOperation, "key-managers/trx/svc")
 	req.Storage = storage
 	_, err = b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
@@ -39,7 +39,7 @@ func TestTrxCreateAndListKeyManagers(t *testing.T) {
 	resp, err = b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
 
-	rawPairs, ok := resp.Data["key_pairs"].([]map[string]string)
+	rawPairs, ok := resp.Data["key_pairs"].([]map[string]interface{})
 	require.True(t, ok, "expected key_pairs to be []map[string]string")
 	require.Len(t, rawPairs, 2)
 
@@ -56,7 +56,7 @@ func TestTrxCreateAndListKeyManagers_EmptyPrivKey(t *testing.T) {
 	b, storage := test.NewTestBackend(t)
 
 	// empty privateKey → should generate a new random Tron address
-	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/trx/svc")
+	req := logical.TestRequest(t, logical.CreateOperation, "key-managers/trx/svc")
 	req.Storage = storage
 	req.Data = map[string]interface{}{
 		"private_key": "",
@@ -72,7 +72,7 @@ func TestTrxCreateAndListKeyManagers_InvalidPrivKey(t *testing.T) {
 	b, storage := test.NewTestBackend(t)
 
 	// too-short or malformed privateKey → error
-	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/trx/svc")
+	req := logical.TestRequest(t, logical.CreateOperation, "key-managers/trx/svc")
 	req.Storage = storage
 	req.Data = map[string]interface{}{
 		"private_key": "1234deadbeef",

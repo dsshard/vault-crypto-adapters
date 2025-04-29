@@ -22,10 +22,17 @@ func PathCrud() *framework.Path {
 	return &framework.Path{
 		Pattern: config.CreatePathCrud(config.Chain.DOGE),
 		Operations: map[logical.Operation]framework.OperationHandler{
-			logical.UpdateOperation: &framework.PathOperation{Callback: createKeyManager},
-			logical.ReadOperation:   &framework.PathOperation{Callback: backend.WrapperReadKeyManager(config.Chain.DOGE)},
-			logical.DeleteOperation: &framework.PathOperation{Callback: backend.WrapperDeleteKeyManager(config.Chain.DOGE)},
+			logical.CreateOperation: &framework.PathOperation{
+				Callback: createKeyManager,
+			},
+			logical.ReadOperation: &framework.PathOperation{
+				Callback: backend.WrapperReadKeyManager(config.Chain.DOGE),
+			},
+			logical.DeleteOperation: &framework.PathOperation{
+				Callback: backend.WrapperDeleteKeyManager(config.Chain.DOGE),
+			},
 		},
+		ExistenceCheck:  backend.KeyManagerExistenceCheck(config.Chain.DOGE),
 		HelpSynopsis:    backend.DefaultHelpHelpSynopsisCreateList,
 		HelpDescription: backend.DefaultHelpDescriptionCreateList,
 		Fields:          backend.DefaultCrudOperations,

@@ -18,6 +18,9 @@ func PathCrudList(chain config.ChainType) *framework.Path {
 			logical.ListOperation: &framework.PathOperation{
 				Callback: WrapperListKeyManager(chain),
 			},
+			logical.UpdateOperation: &framework.PathOperation{
+				Callback: WriteExternalData(chain),
+			},
 		},
 		HelpSynopsis:    DefaultHelpHelpSynopsisCreateList,
 		HelpDescription: DefaultHelpDescriptionCreateList,
@@ -52,12 +55,16 @@ func readKeyManager(
 	}
 
 	// Собираем пары address + public_key
-	pairs := make([]map[string]string, len(keyManager.KeyPairs))
+	pairs := make([]map[string]interface{}, len(keyManager.KeyPairs))
 	for i, kp := range keyManager.KeyPairs {
-		pairs[i] = map[string]string{
+		pair := map[string]interface{}{
 			"address":    kp.Address,
 			"public_key": kp.PublicKey,
 		}
+		if kp.ExternalData != nil {
+			pair["external_data"] = kp.ExternalData
+		}
+		pairs[i] = pair
 	}
 
 	return &logical.Response{
@@ -140,4 +147,70 @@ func listKeyManagers(
 		return nil, err
 	}
 	return logical.ListResponse(names), nil
+}
+
+func WriteExternalData(chain config.ChainType) func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+	return func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
+		return writeExternalData(chain, ctx, req, data)
+	}
+}
+
+func writeExternalData(
+	chain config.ChainType,
+	ctx context.Context,
+	req *logical.Request,
+	data *framework.FieldData,
+) (*logical.Response, error) {
+	serviceName, ok := data.Get("name").(string)
+	if !ok || serviceName == "" {
+		return nil, errors.New("invalid input: name must be a non-empty string")
+	}
+	address, ok := data.Get("address").(string)
+	if !ok || address == "" {
+		return nil, errors.New("invalid input: address must be a non-empty string")
+	}
+
+	rawExtData, ok := data.Get("external_data").(map[string]interface{})
+	if !ok {
+		return nil, errors.New("invalid input: external_data must be a JSON object")
+	}
+
+	// Storage path for this service's path manager
+	path := fmt.Sprintf("key-managers/%s/%s", chain, serviceName)
+
+	// Fetch existing entry
+	keyManager, err := RetrieveKeyManager(ctx, req, chain, serviceName)
+	if err != nil {
+		return nil, fmt.Errorf("error retrieving signing keyManager %s", serviceName)
+	}
+
+	// Ищем нужный KeyPair
+	found := false
+	for _, kp := range keyManager.KeyPairs {
+		if kp.Address == address {
+			kp.ExternalData = rawExtData
+			found = true
+			break
+		}
+	}
+
+	if !found {
+		return nil, fmt.Errorf("key pair with address %q not found", address)
+	}
+
+	// Сохраняем обратно
+	entry, err := logical.StorageEntryJSON(path, keyManager)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create storage entry: %w", err)
+	}
+	if err := req.Storage.Put(ctx, entry); err != nil {
+		return nil, fmt.Errorf("failed to write to storage: %w", err)
+	}
+
+	return &logical.Response{
+		Data: map[string]interface{}{
+			"status":  "external_data_updated",
+			"address": address,
+		},
+	}, nil
 }

@@ -12,7 +12,7 @@ import (
 func TestDogeCreateAndListKeyManagers(t *testing.T) {
 	b, storage := test.NewTestBackend(t)
 	// Import specific privkey
-	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/doge/svc")
+	req := logical.TestRequest(t, logical.CreateOperation, "key-managers/doge/svc")
 	req.Storage = storage
 	// 32‑byte secp256k1 privkey hex
 	req.Data = map[string]interface{}{
@@ -24,7 +24,7 @@ func TestDogeCreateAndListKeyManagers(t *testing.T) {
 	assert.Equal(t, "D9CJPqih9zaKTTgpY1msoQRBUjDbEXNvtJ", addr)
 
 	// Generate another key
-	req = logical.TestRequest(t, logical.UpdateOperation, "key-managers/doge/svc")
+	req = logical.TestRequest(t, logical.CreateOperation, "key-managers/doge/svc")
 	req.Storage = storage
 	_, err = b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
@@ -35,14 +35,14 @@ func TestDogeCreateAndListKeyManagers(t *testing.T) {
 	resp, err = b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)
 	// приводим к []interface{} и проверяем длину
-	rawPairs := resp.Data["key_pairs"].([]map[string]string)
+	rawPairs := resp.Data["key_pairs"].([]map[string]interface{})
 	require.Len(t, rawPairs, 2)
 }
 
 func TestDogeCreateAndListKeyManagers2(t *testing.T) {
 	b, storage := test.NewTestBackend(t)
 	// Import specific privkey
-	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/doge/svg")
+	req := logical.TestRequest(t, logical.CreateOperation, "key-managers/doge/svg")
 	req.Storage = storage
 	// 32‑byte secp256k1 privkey hex
 	req.Data = map[string]interface{}{
@@ -58,7 +58,7 @@ func TestDogeCreateAndListKeyManagers2(t *testing.T) {
 func TestDogeCreateAndListKeyManagers3(t *testing.T) {
 	b, storage := test.NewTestBackend(t)
 	// Import specific privkey
-	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/doge/svc")
+	req := logical.TestRequest(t, logical.CreateOperation, "key-managers/doge/svc")
 	req.Storage = storage
 	// 32‑byte secp256k1 privkey hex
 	req.Data = map[string]interface{}{

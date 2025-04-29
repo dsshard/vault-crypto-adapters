@@ -15,7 +15,7 @@ func TestTonSignHash(t *testing.T) {
 	b, storage := test.NewTestBackend(t)
 
 	// Create manager
-	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/ton/svc")
+	req := logical.TestRequest(t, logical.CreateOperation, "key-managers/ton/svc")
 	req.Storage = storage
 	account, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)

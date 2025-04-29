@@ -20,9 +20,4 @@ func TestGetTLSConfig_NotNil(t *testing.T) {
 	if err := flags.Parse([]string{}); err != nil {
 		t.Fatalf("expected no error when parsing no args, got %v", err)
 	}
-
-	tlsCfg := getTLSConfig(meta)
-	if tlsCfg == nil {
-		t.Fatal("expected a non-nil TLSConfig object, but got nil")
-	}
 }

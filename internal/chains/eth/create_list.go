@@ -21,7 +21,7 @@ func PathCrud() *framework.Path {
 	return &framework.Path{
 		Pattern: config.CreatePathCrud(config.Chain.ETH),
 		Operations: map[logical.Operation]framework.OperationHandler{
-			logical.UpdateOperation: &framework.PathOperation{
+			logical.CreateOperation: &framework.PathOperation{
 				Callback: createKeyManager,
 			},
 			logical.ReadOperation: &framework.PathOperation{
@@ -31,6 +31,7 @@ func PathCrud() *framework.Path {
 				Callback: backend.WrapperDeleteKeyManager(config.Chain.ETH),
 			},
 		},
+		ExistenceCheck:  backend.KeyManagerExistenceCheck(config.Chain.ETH),
 		HelpSynopsis:    backend.DefaultHelpHelpSynopsisCreateList,
 		HelpDescription: backend.DefaultHelpDescriptionCreateList,
 		Fields:          backend.DefaultCrudOperations,

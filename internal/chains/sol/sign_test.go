@@ -15,7 +15,7 @@ func TestSolSign(t *testing.T) {
 	b, storage := test.NewTestBackend(t)
 
 	// create key manager
-	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/sol/svc")
+	req := logical.TestRequest(t, logical.CreateOperation, "key-managers/sol/svc")
 	req.Storage = storage
 	account, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)

@@ -13,7 +13,7 @@ import (
 func TestEthSignHash(t *testing.T) {
 	b, storage := test.NewTestBackend(t)
 	// create
-	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/eth/svc")
+	req := logical.TestRequest(t, logical.CreateOperation, "key-managers/eth/svc")
 	req.Storage = storage
 	account, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)

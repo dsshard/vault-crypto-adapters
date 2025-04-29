@@ -15,7 +15,7 @@ func TestXrpSignBlob(t *testing.T) {
 	b, storage := test.NewTestBackend(t)
 
 	// 1) Create/import a key‐manager for XRP
-	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/xrp/svc")
+	req := logical.TestRequest(t, logical.CreateOperation, "key-managers/xrp/svc")
 	req.Storage = storage
 	account, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)

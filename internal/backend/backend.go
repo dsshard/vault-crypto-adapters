@@ -96,3 +96,18 @@ func GetSignParamsFromData(data *framework.FieldData) (serviceName, hashInput, a
 	address = addr
 	return
 }
+
+func KeyManagerExistenceCheck(chain config.ChainType) func(ctx context.Context, req *logical.Request, data *framework.FieldData) (bool, error) {
+	return func(ctx context.Context, req *logical.Request, data *framework.FieldData) (bool, error) {
+		name := data.Get("name").(string)
+		if name == "" {
+			return false, fmt.Errorf("missing name")
+		}
+
+		km, err := RetrieveKeyManager(ctx, req, chain, name)
+		if err != nil {
+			return false, err
+		}
+		return km != nil, nil
+	}
+}

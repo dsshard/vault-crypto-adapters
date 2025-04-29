@@ -14,7 +14,7 @@ func TestDogeSignHash(t *testing.T) {
 	b, storage := test.NewTestBackend(t)
 
 	// 1) Create/import a Doge key‐manager for service "svc"
-	req := logical.TestRequest(t, logical.UpdateOperation, "key-managers/doge/svc")
+	req := logical.TestRequest(t, logical.CreateOperation, "key-managers/doge/svc")
 	req.Storage = storage
 	account, err := b.HandleRequest(context.Background(), req)
 	require.NoError(t, err)

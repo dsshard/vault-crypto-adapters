@@ -16,7 +16,7 @@ func TestDeleteKeyManager_UsingHandlers(t *testing.T) {
 	pathCreate := "key-managers/btc/svc"
 
 	// 1) Create first key with specific private key
-	req1 := logical.TestRequest(t, logical.UpdateOperation, "key-managers/btc/svc")
+	req1 := logical.TestRequest(t, logical.CreateOperation, "key-managers/btc/svc")
 	req1.Storage = storage
 	req1.Data = map[string]interface{}{"private_key": "KzQJ9vR4JeoJicejXmdvjcoDmZHa665diNxt17o3KRw3Hvix5CA5"}
 	resp1, err := b.HandleRequest(context.Background(), req1)
@@ -24,7 +24,7 @@ func TestDeleteKeyManager_UsingHandlers(t *testing.T) {
 	addr1 := resp1.Data["address"].(string)
 
 	// 2) Create second key (random)
-	req2 := logical.TestRequest(t, logical.UpdateOperation, pathCreate)
+	req2 := logical.TestRequest(t, logical.CreateOperation, pathCreate)
 	req2.Storage = storage
 	req1.Data = map[string]interface{}{"rnd": "123"}
 	resp2, err := b.HandleRequest(context.Background(), req2)
@@ -36,7 +36,7 @@ func TestDeleteKeyManager_UsingHandlers(t *testing.T) {
 	reqList.Storage = storage
 	respList, err := b.HandleRequest(context.Background(), reqList)
 	require.NoError(t, err)
-	pairs := respList.Data["key_pairs"].([]map[string]string)
+	pairs := respList.Data["key_pairs"].([]map[string]interface{})
 	require.Len(t, pairs, 2)
 
 	// 3) Delete first address
@@ -52,7 +52,7 @@ func TestDeleteKeyManager_UsingHandlers(t *testing.T) {
 	reqAfterDel.Storage = storage
 	respAfter, err := b.HandleRequest(context.Background(), reqAfterDel)
 	require.NoError(t, err)
-	remaining := respAfter.Data["key_pairs"].([]map[string]string)
+	remaining := respAfter.Data["key_pairs"].([]map[string]interface{})
 	assert.Len(t, remaining, 1)
 	remainingAddr := remaining[0]["address"]
 	assert.Equal(t, addr2, remainingAddr)
@@ -80,12 +80,12 @@ func TestListKeyManager_CheckList(t *testing.T) {
 	pathCreate2 := "key-managers/btc/test2"
 
 	// 1) Create first key with specific private key
-	req1 := logical.TestRequest(t, logical.UpdateOperation, pathCreate1)
+	req1 := logical.TestRequest(t, logical.CreateOperation, pathCreate1)
 	req1.Storage = storage
 	b.HandleRequest(context.Background(), req1)
 
 	// 1) Create first key with specific private key
-	req2 := logical.TestRequest(t, logical.UpdateOperation, pathCreate2)
+	req2 := logical.TestRequest(t, logical.CreateOperation, pathCreate2)
 	req2.Storage = storage
 	b.HandleRequest(context.Background(), req2)
 
@@ -104,7 +104,7 @@ func TestListKeyManager_CheckList_Eth(t *testing.T) {
 	pathCreate := "key-managers/eth/testeth"
 
 	// Создаём eth/testeth
-	reqCreate := logical.TestRequest(t, logical.UpdateOperation, pathCreate)
+	reqCreate := logical.TestRequest(t, logical.CreateOperation, pathCreate)
 	reqCreate.Storage = storage
 	b.HandleRequest(context.Background(), reqCreate)
 
