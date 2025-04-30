@@ -119,9 +119,9 @@ func TestListKeyManager_CheckList_Eth(t *testing.T) {
 
 func TestUpdateExternalData(t *testing.T) {
 	b, storage := test.NewTestBackend(t)
-	pathCreate := "key-managers/btc/testservice"
-	pathUpdate := "key-managers/btc/testservice" // тот же путь
-	pathRead := "key-managers/btc/testservice"
+	pathCreate := "key-managers/btc/test"
+	pathUpdate := "key-managers/btc/test/external"
+	pathRead := "key-managers/btc/test"
 
 	// 1. Создаём новый сервис
 	reqCreate := logical.TestRequest(t, logical.CreateOperation, pathCreate)
@@ -141,6 +141,8 @@ func TestUpdateExternalData(t *testing.T) {
 	respUpdate, err := b.HandleRequest(context.Background(), reqUpdate)
 	require.NoError(t, err)
 	require.NotNil(t, respUpdate)
+
+	require.True(t, respUpdate.Data["status"] == "external_data_updated")
 
 	// 4. Читаем и проверяем, что external_data появилось
 	reqRead := logical.TestRequest(t, logical.ReadOperation, pathRead)

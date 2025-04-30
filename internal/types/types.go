@@ -6,10 +6,11 @@ import (
 )
 
 type KeyPair struct {
-	PrivateKey   string                 `json:"private_key"`
-	PublicKey    string                 `json:"public_key"`
-	Address      string                 `json:"address"`
-	ExternalData map[string]interface{} `json:"external_data,omitempty"`
+	PrivateKey         string                 `json:"private_key"`
+	PublicKey          string                 `json:"public_key"`
+	Address            string                 `json:"address"`
+	ExternalData       map[string]interface{} `json:"external_data,omitempty"`
+	IsLockExternalData bool                   `json:"is_lock_external_data,omitempty"`
 }
 
 type KeyManager struct {

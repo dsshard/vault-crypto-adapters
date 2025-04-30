@@ -3,8 +3,12 @@ package backend
 import "github.com/hashicorp/vault/sdk/framework"
 
 var DefaultCrudOperations = map[string]*framework.FieldSchema{
-	"name":    {Type: framework.TypeString},
-	"address": {Type: framework.TypeString},
+	"name": {
+		Type: framework.TypeString,
+	},
+	"address": {
+		Type: framework.TypeString,
+	},
 	"private_key": {
 		Type:        framework.TypeString,
 		Description: "(Optional, default random key) Hex string for the private key",
@@ -15,10 +19,34 @@ var DefaultCrudOperations = map[string]*framework.FieldSchema{
 		Description: "(Optional) Arbitrary external metadata to attach to this key pair",
 		Default:     nil,
 	},
+	"lock": {
+		Type:        framework.TypeBool,
+		Description: "(Optional) Lock the key",
+		Default:     false,
+	},
 	"rnd": {
 		Type:        framework.TypeString,
 		Description: "(default random key) only for vault success operations",
 		Default:     "",
+	},
+}
+
+var DefaultUpdateOperations = map[string]*framework.FieldSchema{
+	"name": {
+		Type: framework.TypeString,
+	},
+	"address": {
+		Type: framework.TypeString,
+	},
+	"external_data": {
+		Type:        framework.TypeMap,
+		Description: "(Optional) Arbitrary external metadata to attach to this key pair",
+		Default:     nil,
+	},
+	"lock": {
+		Type:        framework.TypeBool,
+		Description: "(Optional) Lock the key",
+		Default:     false,
 	},
 }
 

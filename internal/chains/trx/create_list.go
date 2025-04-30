@@ -31,9 +31,6 @@ func PathCrud() *framework.Path {
 			logical.DeleteOperation: &framework.PathOperation{
 				Callback: backend.WrapperDeleteKeyManager(config.Chain.TRX),
 			},
-			logical.UpdateOperation: &framework.PathOperation{
-				Callback: backend.WriteExternalData(config.Chain.TRX),
-			},
 		},
 		ExistenceCheck:  backend.KeyManagerExistenceCheck(config.Chain.TRX),
 		HelpSynopsis:    backend.DefaultHelpHelpSynopsisCreateList,
@@ -106,8 +103,7 @@ func createKeyManager(
 	km.KeyPairs = append(km.KeyPairs, kp)
 
 	// 3) Сохраняем в Vault
-	path := fmt.Sprintf("key-managers/%s/%s", config.Chain.TRX, serviceName)
-	entry, _ := logical.StorageEntryJSON(path, km)
+	entry, _ := logical.StorageEntryJSON(config.GetStoragePath(config.Chain.TRX, serviceName), km)
 	if err := req.Storage.Put(ctx, entry); err != nil {
 		log.Error("Failed to store key-manager", "error", err)
 		return nil, err

@@ -29,9 +29,6 @@ func PathCrud() *framework.Path {
 			logical.DeleteOperation: &framework.PathOperation{
 				Callback: backend.WrapperDeleteKeyManager(config.Chain.BTC),
 			},
-			logical.UpdateOperation: &framework.PathOperation{
-				Callback: backend.WriteExternalData(config.Chain.BTC),
-			},
 		},
 		ExistenceCheck:  backend.KeyManagerExistenceCheck(config.Chain.BTC),
 		HelpSynopsis:    backend.DefaultHelpHelpSynopsisCreateList,
@@ -92,7 +89,7 @@ func createKeyManager(ctx context.Context, req *logical.Request, data *framework
 	}
 	km.KeyPairs = append(km.KeyPairs, kp)
 
-	entry, _ := logical.StorageEntryJSON(fmt.Sprintf("key-managers/%s/%s", config.Chain.BTC, serviceName), km)
+	entry, _ := logical.StorageEntryJSON(config.GetStoragePath(config.Chain.BTC, serviceName), km)
 	if err := req.Storage.Put(ctx, entry); err != nil {
 		return nil, err
 	}

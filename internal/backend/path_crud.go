@@ -8,7 +8,6 @@ import (
 	"github.com/dsshard/vault-crypto-adapters/internal/types"
 	"github.com/hashicorp/vault/sdk/framework"
 	"github.com/hashicorp/vault/sdk/logical"
-	"log"
 )
 
 func PathCrudList(chain config.ChainType) *framework.Path {
@@ -19,6 +18,19 @@ func PathCrudList(chain config.ChainType) *framework.Path {
 				Callback: WrapperListKeyManager(chain),
 			},
 		},
+		HelpSynopsis:    DefaultHelpHelpSynopsisCreateList,
+		HelpDescription: DefaultHelpDescriptionCreateList,
+	}
+}
+func PathUpdateExternalData(chain config.ChainType) *framework.Path {
+	return &framework.Path{
+		Pattern: config.CreatePathUpdateExternalData(chain),
+		Operations: map[logical.Operation]framework.OperationHandler{
+			logical.UpdateOperation: &framework.PathOperation{
+				Callback: WriteExternalData(chain),
+			},
+		},
+		Fields:          DefaultUpdateOperations,
 		HelpSynopsis:    DefaultHelpHelpSynopsisCreateList,
 		HelpDescription: DefaultHelpDescriptionCreateList,
 	}
@@ -40,7 +52,6 @@ func readKeyManager(
 		return nil, errors.New("invalid input type")
 	}
 
-	log.Print("Retrieving key manager for name", serviceName)
 	keyManager, err := RetrieveKeyManager(ctx, req, chain, serviceName)
 	if err != nil {
 		return nil, err
@@ -95,7 +106,7 @@ func deleteKeyManager(
 	}
 
 	// Storage path for this service's path manager
-	path := fmt.Sprintf("key-managers/%s/%s", chain, serviceName)
+	path := config.GetStoragePath(chain, serviceName)
 
 	// Fetch existing entry
 	keyManager, err := RetrieveKeyManager(ctx, req, chain, serviceName)
@@ -158,10 +169,17 @@ func writeExternalData(
 	req *logical.Request,
 	data *framework.FieldData,
 ) (*logical.Response, error) {
+
 	serviceName, ok := data.Get("name").(string)
 	if !ok || serviceName == "" {
 		return nil, errors.New("invalid input: name must be a non-empty string")
 	}
+
+	isLock, ok := data.Get("lock").(bool)
+	if !ok {
+		return nil, errors.New("invalid input: lock must be a boolean")
+	}
+
 	address, ok := data.Get("address").(string)
 	if !ok || address == "" {
 		return nil, errors.New("invalid input: address must be a non-empty string")
@@ -173,7 +191,7 @@ func writeExternalData(
 	}
 
 	// Storage path for this service's path manager
-	path := fmt.Sprintf("key-managers/%s/%s", chain, serviceName)
+	path := config.GetStoragePath(chain, serviceName)
 
 	// Fetch existing entry
 	keyManager, err := RetrieveKeyManager(ctx, req, chain, serviceName)
@@ -185,8 +203,13 @@ func writeExternalData(
 	found := false
 	for _, kp := range keyManager.KeyPairs {
 		if kp.Address == address {
-			kp.ExternalData = rawExtData
-			found = true
+			if isLock {
+				kp.IsLockExternalData = true
+			}
+			if !kp.IsLockExternalData {
+				kp.ExternalData = rawExtData
+				found = true
+			}
 			break
 		}
 	}

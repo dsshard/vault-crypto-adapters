@@ -29,6 +29,7 @@ func Paths() []*framework.Path {
 
 	for _, chain := range config.AllChains {
 		paths = append(paths, backend.PathCrudList(chain))
+		paths = append(paths, backend.PathUpdateExternalData(chain))
 	}
 
 	return paths
