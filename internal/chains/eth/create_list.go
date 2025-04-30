@@ -30,6 +30,9 @@ func PathCrud() *framework.Path {
 			logical.DeleteOperation: &framework.PathOperation{
 				Callback: backend.WrapperDeleteKeyManager(config.Chain.ETH),
 			},
+			logical.UpdateOperation: &framework.PathOperation{
+				Callback: backend.WriteExternalData(config.Chain.ETH),
+			},
 		},
 		ExistenceCheck:  backend.KeyManagerExistenceCheck(config.Chain.ETH),
 		HelpSynopsis:    backend.DefaultHelpHelpSynopsisCreateList,

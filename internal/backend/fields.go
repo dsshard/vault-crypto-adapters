@@ -10,6 +10,11 @@ var DefaultCrudOperations = map[string]*framework.FieldSchema{
 		Description: "(Optional, default random key) Hex string for the private key",
 		Default:     "",
 	},
+	"external_data": {
+		Type:        framework.TypeMap,
+		Description: "(Optional) Arbitrary external metadata to attach to this key pair",
+		Default:     nil,
+	},
 	"rnd": {
 		Type:        framework.TypeString,
 		Description: "(default random key) only for vault success operations",

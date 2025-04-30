@@ -18,9 +18,6 @@ func PathCrudList(chain config.ChainType) *framework.Path {
 			logical.ListOperation: &framework.PathOperation{
 				Callback: WrapperListKeyManager(chain),
 			},
-			logical.UpdateOperation: &framework.PathOperation{
-				Callback: WriteExternalData(chain),
-			},
 		},
 		HelpSynopsis:    DefaultHelpHelpSynopsisCreateList,
 		HelpDescription: DefaultHelpDescriptionCreateList,

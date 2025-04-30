@@ -2,6 +2,7 @@ package backend_test
 
 import (
 	"context"
+	"log"
 	"testing"
 
 	"github.com/dsshard/vault-crypto-adapters/internal/test"
@@ -114,4 +115,69 @@ func TestListKeyManager_CheckList_Eth(t *testing.T) {
 	resp, err := b.HandleRequest(context.Background(), reqList)
 	require.NoError(t, err)
 	require.Len(t, resp.Data["keys"], 1)
+}
+
+func TestUpdateExternalData(t *testing.T) {
+	b, storage := test.NewTestBackend(t)
+	pathCreate := "key-managers/btc/testservice"
+	pathUpdate := "key-managers/btc/testservice" // тот же путь
+	pathRead := "key-managers/btc/testservice"
+
+	// 1. Создаём новый сервис
+	reqCreate := logical.TestRequest(t, logical.CreateOperation, pathCreate)
+	reqCreate.Storage = storage
+	res, err := b.HandleRequest(context.Background(), reqCreate)
+	require.NoError(t, err)
+	addr := res.Data["address"].(string)
+	log.Print(addr)
+
+	// 3. Пишем external_data в KeyPair
+	reqUpdate := logical.TestRequest(t, logical.UpdateOperation, pathUpdate)
+	reqUpdate.Storage = storage
+	reqUpdate.Data = map[string]interface{}{
+		"address":       addr,
+		"external_data": map[string]interface{}{"note": "hello world", "env": "test"},
+	}
+	respUpdate, err := b.HandleRequest(context.Background(), reqUpdate)
+	require.NoError(t, err)
+	require.NotNil(t, respUpdate)
+
+	// 4. Читаем и проверяем, что external_data появилось
+	reqRead := logical.TestRequest(t, logical.ReadOperation, pathRead)
+	reqRead.Storage = storage
+	respRead, err := b.HandleRequest(context.Background(), reqRead)
+	require.NoError(t, err)
+
+	rawPairs, ok := respRead.Data["key_pairs"].([]map[string]interface{})
+	require.True(t, ok)
+	require.Len(t, rawPairs, 1)
+
+	externalData, ok := rawPairs[0]["external_data"].(map[string]interface{})
+	require.True(t, ok)
+	require.Equal(t, "hello world", externalData["note"])
+	require.Equal(t, "test", externalData["env"])
+
+	// 5. Очищаем external_data
+	reqClear := logical.TestRequest(t, logical.UpdateOperation, pathUpdate)
+	reqClear.Storage = storage
+	reqClear.Data = map[string]interface{}{
+		"address": addr,
+		// external_data нет => должно очиститься
+	}
+	respClear, err := b.HandleRequest(context.Background(), reqClear)
+	require.NoError(t, err)
+	require.NotNil(t, respClear)
+
+	// 6. Читаем снова и проверяем, что external_data нет
+	reqRead2 := logical.TestRequest(t, logical.ReadOperation, pathRead)
+	reqRead2.Storage = storage
+	respRead2, err := b.HandleRequest(context.Background(), reqRead2)
+	require.NoError(t, err)
+
+	rawPairs2, ok := respRead2.Data["key_pairs"].([]map[string]interface{})
+	require.True(t, ok)
+	require.Len(t, rawPairs2, 1)
+
+	_, hasExternalData := rawPairs2[0]["external_data"]
+	require.False(t, hasExternalData, "external_data should be removed")
 }
