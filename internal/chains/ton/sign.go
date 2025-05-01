@@ -54,9 +54,6 @@ func signHash(
 	if err != nil {
 		return nil, fmt.Errorf("invalid hash hex: %w", err)
 	}
-	if len(hashBytes) != 32 {
-		return nil, fmt.Errorf("hash must be 32 bytes, got %d", len(hashBytes))
-	}
 	sig := ed25519.Sign(priv, hashBytes)
 
 	return &logical.Response{
