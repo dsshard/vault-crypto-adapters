@@ -9,10 +9,11 @@ A Vault secret engine plugin that enables you to **generate addresses** and **si
 
 This plugin extends HashiCorp Vault to serve as a secure key management system for blockchain operations:
 
-- **Secure key storage** - Store private keys securely within Vault's encrypted storage
-- **Address generation** - Create new blockchain addresses with corresponding private keys
+- **Secure key generation** - Create new blockchain addresses with keys never exposed outside Vault
+- **Private key management** - Store and protect private keys in Vault's encrypted storage
 - **Transaction signing** - Sign blockchain transactions without exposing private keys
 - **Multi-chain support** - Single API interface for 7 leading blockchains
+- **Optional key import** - Import existing keys when needed, but secure generation is recommended
 
 ## Installation
 
@@ -32,15 +33,15 @@ This plugin extends HashiCorp Vault to serve as a secure key management system f
 
 ## Supported Blockchains
 
-| Chain     | Path Prefix           | Private Key Format                | Address Format                       |
-|-----------|-----------------------|-----------------------------------|--------------------------------------|
-| Bitcoin   | `key-managers/btc`    | WIF or 32‑byte hex                | Bech32 (starts with `bc1…`)         |
-| Ethereum  | `key-managers/eth`    | 32‑byte hex                       | EIP‑55 checksummed (0x…)            |
-| Solana    | `key-managers/sol`    | 64‑hex ed25519 seed or base58     | Base58 (44 chars)                   |
-| TON       | `key-managers/ton`    | 32‑byte hex                       | URL‑safe base64 (~48 chars)         |
-| Tron      | `key-managers/trx`    | 32‑byte secp256k1 hex             | Base58Check (34 chars, starts w/ T) |
-| XRP       | `key-managers/xrp`    | 32‑byte hex                       | Base58 (starts with r)              |
-| Dogecoin  | `key-managers/doge`   | WIF or 32‑byte hex                | Base58Check (starts with D/A/9)     |
+| Chain    | Path Prefix         | Private Key Format            | Address Format                      |
+|----------|---------------------|-------------------------------|-------------------------------------|
+| Bitcoin  | `key-managers/btc`  | WIF or 32‑byte hex            | Bech32 (starts with `bc1…`)         |
+| Ethereum | `key-managers/eth`  | 32‑byte hex                   | EIP‑55 checksummed (0x…)            |
+| Solana   | `key-managers/sol`  | 64‑hex ed25519 seed or base58 | Base58 (44 chars)                   |
+| TON      | `key-managers/ton`  | 32‑byte hex                   | URL‑safe base64 (~48 chars)         |
+| Tron     | `key-managers/trx`  | 32‑byte secp256k1 hex         | Base58Check (34 chars, starts w/ T) |
+| XRP      | `key-managers/xrp`  | 32‑byte hex                   | Base58 (starts with r)              |
+| Dogecoin | `key-managers/doge` | WIF or 32‑byte hex            | Base58Check (starts with D/A/9)     |
 
 ## API Reference
 
@@ -52,7 +53,7 @@ Creates a new key pair or imports an existing private key for a specified blockc
 
 **Request Body (JSON)**:
 - `serviceName` (string, required) — Logical service identifier
-- `privateKey` (string, optional) — Private key in the format specified in the table above. If omitted or invalid, a new key is generated
+- `privateKey` (string, optional) — Private key in the format specified in the table above. **If omitted, a new secure key is automatically generated**
 - `external_data` (object, optional) — Arbitrary metadata to attach to this key pair
 - `lock` (boolean, optional, default: false) — Lock the key
 
@@ -67,9 +68,14 @@ Creates a new key pair or imports an existing private key for a specified blockc
 }
 ```
 
-**Example**:
+**Examples**:
 ```bash
-# Ethereum: import hex seed or generate new
+# RECOMMENDED: Generate a new random key securely within Vault
+curl -X POST $VAULT_ADDR/v1/key-managers/eth \
+-H "X-Vault-Token: $VAULT_TOKEN" \
+-d '{"serviceName":"myservice"}'
+
+# ALTERNATIVE: Import an existing private key
 curl -X POST $VAULT_ADDR/v1/key-managers/eth \
 -H "X-Vault-Token: $VAULT_TOKEN" \
 -d '{"serviceName":"myservice","privateKey":"4c0883a69102937a9280f1222f7c9b6645e1a3c7bf2e5b4cd0bd58d7f9f5d9b7"}'
@@ -206,11 +212,27 @@ curl -X DELETE $VAULT_ADDR/v1/key-managers/eth/myservice \
 
 ## Blockchain-Specific Examples
 
+### Key Generation vs Key Import
+
+One of the **main security features** of this plugin is the ability to generate keys securely within Vault without ever exposing private keys:
+
+```bash
+# RECOMMENDED: Generate a new random key (no privateKey required)
+vault write key-managers/eth serviceName=secure-wallet
+
+# ALTERNATIVE: Import an existing private key (less secure)
+vault write key-managers/eth serviceName=imported-wallet privateKey=4c0883a69102937a9280f1222f7c9b6645e1a3c7bf2e5b4cd0bd58d7f9f5d9b7
+```
+
 ### Bitcoin (BTC)
 
 ```bash
-# Create with WIF private key
-vault write key-managers/btc serviceName=mybtc privateKey=L1aW4aubDFB7yfras2S1mN3bqg9...
+# Generate a new Bitcoin address with secure key generation
+vault write key-managers/btc serviceName=mybtc
+# Response shows: { "address": "bc1q...", "public_key": "02..." }
+
+# Alternatively, import existing WIF private key
+vault write key-managers/btc serviceName=imported-btc privateKey=L1aW4aubDFB7yfras2S1mN3bqg9...
 
 # Sign a transaction hash (returns schnorr signature)
 vault write key-managers/btc/mybtc/sign hash=deadbeef... address=bc1...
@@ -219,8 +241,12 @@ vault write key-managers/btc/mybtc/sign hash=deadbeef... address=bc1...
 ### Ethereum (ETH)
 
 ```bash
-# Create with 32-byte hex private key
-vault write key-managers/eth serviceName=myeth privateKey=4c0883a69102937a9280f1222f7c9b6645e1a3c7bf2e5b4cd0bd58d7f9f5d9b7
+# Generate a new Ethereum address securely in vault
+vault write key-managers/eth serviceName=myeth
+# Response shows: { "address": "0x...", "public_key": "04..." }
+
+# Alternatively, import existing private key
+vault write key-managers/eth serviceName=imported-eth privateKey=4c0883a69102937a9280f1222f7c9b6645e1a3c7bf2e5b4cd0bd58d7f9f5d9b7
 
 # Sign a transaction hash (returns r|s|v signature)
 vault write key-managers/eth/myeth/sign hash=deadbeef... address=0x...
@@ -229,8 +255,12 @@ vault write key-managers/eth/myeth/sign hash=deadbeef... address=0x...
 ### Solana (SOL)
 
 ```bash
-# Create with ed25519 seed
-vault write key-managers/sol serviceName=mysol privateKey=3b6a27bccebfb65a6d8c3e78bf84df3e7a32b29b77b680f7f245d3c5f5b0a1b2
+# Generate a new Solana address with secure key generation
+vault write key-managers/sol serviceName=mysol
+# Response shows: { "address": "HqwjY...", "public_key": "HqwjY..." }
+
+# Alternatively, import existing ed25519 seed
+vault write key-managers/sol serviceName=imported-sol privateKey=3b6a27bccebfb65a6d8c3e78bf84df3e7a32b29b77b680f7f245d3c5f5b0a1b2
 
 # Sign a message (returns ed25519 signature)
 vault write key-managers/sol/mysol/sign hash=deadbeef... address=HqwjY...
@@ -239,8 +269,12 @@ vault write key-managers/sol/mysol/sign hash=deadbeef... address=HqwjY...
 ### TON
 
 ```bash
-# Create with 32-byte hex
-vault write key-managers/ton serviceName=myton privateKey=4c0883a69102937a9280f1222f7c9b6645e1a3c7bf2e5b4cd0bd58d7f9f5d9b7
+# Generate a new TON address securely in vault
+vault write key-managers/ton serviceName=myton
+# Response shows: { "address": "EQB...", "public_key": "04..." }
+
+# Alternatively, import existing private key
+vault write key-managers/ton serviceName=imported-ton privateKey=4c0883a69102937a9280f1222f7c9b6645e1a3c7bf2e5b4cd0bd58d7f9f5d9b7
 
 # Sign a hash (returns ed25519 signature)
 vault write key-managers/ton/myton/sign hash=b5ee9c7241... address=EQB2trRS...
@@ -249,8 +283,12 @@ vault write key-managers/ton/myton/sign hash=b5ee9c7241... address=EQB2trRS...
 ### Tron (TRX)
 
 ```bash
-# Create with secp256k1 hex
-vault write key-managers/trx serviceName=mytrx privateKey=4c0883a69102937a9280f1222f7c9b6645e1a3c7bf2e5b4cd0bd58d7f9f5d9b7
+# Generate a new TRON address securely in vault
+vault write key-managers/trx serviceName=mytrx
+# Response shows: { "address": "T...", "public_key": "04..." }
+
+# Alternatively, import existing secp256k1 hex
+vault write key-managers/trx serviceName=imported-trx privateKey=4c0883a69102937a9280f1222f7c9b6645e1a3c7bf2e5b4cd0bd58d7f9f5d9b7
 
 # Sign a transaction hash (returns secp256k1 signature)
 vault write key-managers/trx/mytrx/sign hash=deadbeef... address=T...
@@ -259,8 +297,12 @@ vault write key-managers/trx/mytrx/sign hash=deadbeef... address=T...
 ### XRP (Ripple)
 
 ```bash
-# Create with 32-byte hex
-vault write key-managers/xrp serviceName=myxrp privateKey=90dc3e2382d825f290148356dbbe315135dc0fe60bb17030edd2ea6127f938d5
+# Generate a new XRP address securely in vault
+vault write key-managers/xrp serviceName=myxrp
+# Response shows: { "address": "r...", "public_key": "02..." }
+
+# Alternatively, import existing private key
+vault write key-managers/xrp serviceName=imported-xrp privateKey=90dc3e2382d825f290148356dbbe315135dc0fe60bb17030edd2ea6127f938d5
 
 # Sign a transaction blob (returns DER-encoded signature)
 vault write key-managers/xrp/myxrp/sign hash=deadbeef... address=r...
@@ -269,8 +311,12 @@ vault write key-managers/xrp/myxrp/sign hash=deadbeef... address=r...
 ### Dogecoin (DOGE)
 
 ```bash
-# Create with WIF or hex seed
-vault write key-managers/doge serviceName=mydoge privateKey=KzQJ9vR4JeoJicejXmdvjcoDmZHa665diNxt17o3KRw3Hvix5CA5
+# Generate a new Dogecoin address securely in vault
+vault write key-managers/doge serviceName=mydoge
+# Response shows: { "address": "D...", "public_key": "02..." }
+
+# Alternatively, import existing WIF or hex seed
+vault write key-managers/doge serviceName=imported-doge privateKey=KzQJ9vR4JeoJicejXmdvjcoDmZHa665diNxt17o3KRw3Hvix5CA5
 
 # Sign a hash (returns DER-encoded signature)
 vault write key-managers/doge/mydoge/sign hash=deadbeef... address=D...
